@@ -36,109 +36,133 @@
       color: #f3f4f6;
     }
 
-    /* Standard Original CR80 ID Badge Dimensions (2.125" x 3.375" / 324px x 514px scaled proportional) */
-    .id-card-container {
-      width: 324px;
-      min-width: 324px;
-      height: 514px;
-      min-height: 514px;
-      flex: 0 0 324px;
-      position: relative;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(37, 99, 235, 0.2);
-      background-color: #0b1d3a;
-      font-family: 'Poppins', sans-serif !important;
-    }
+    /* Standard Full-Page A4 ID Badge Dimensions (210mm x 297mm / 794px x 1123px at 96 DPI) */
+.id-card-container {
+  width: 794px;
+  min-width: 794px;
+  height: 1123px;
+  min-height: 1123px;
+  flex: 0 0 794px;
+  aspect-ratio: 210 / 297;
+  position: relative;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(37, 99, 235, 0.2);
+  background-color: #0b1d3a;
+  font-family: 'Poppins', sans-serif !important;
+}
 
-    /* Base Default Card Design */
-    .default-id-bg {
-      background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 100%);
-    }
+/* Base Default Card Design */
+.default-id-bg {
+  background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 100%);
+}
 
-    /* Element Positioning Layers */
-    .id-elem-photo {
-      position: absolute;
-      z-index: 2;
-      object-fit: contain;
-      pointer-events: none;
-    }
+/* Element Positioning Layers */
+.id-elem-photo {
+  position: absolute;
+  z-index: 2;
+  object-fit: contain;
+  pointer-events: none;
+}
 
-    /* Strict Pure White Poppins Bold Text - No Background Highlight / No Highlight Overlay */
-    .id-card-text {
-      position: absolute;
-      z-index: 5;
-      font-family: 'Poppins', sans-serif !important;
-      font-weight: 700 !important;
-      color: #ffffff !important;
-      background: transparent !important;
-      background-color: transparent !important;
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1.15;
-      text-shadow: none !important;
-      box-shadow: none !important;
-      border: none !important;
-    }
+/* Strict Pure White Poppins Bold Text - No Background Highlight / No Highlight Overlay */
+.id-card-text {
+  position: absolute;
+  z-index: 5;
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 
-    /* 1:1 Square QR Box Container */
-    .id-elem-qr-box {
-      position: absolute;
-      z-index: 6;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #ffffff;
-      padding: 4px;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-    .id-elem-qr-box img, .id-elem-qr-box canvas {
-      width: 100% !important;
-      height: 100% !important;
-      aspect-ratio: 1 / 1;
-      object-fit: contain;
-    }
+/* 1:1 Square QR Box Container */
+.id-elem-qr-box {
+  position: absolute;
+  z-index: 6;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.id-elem-qr-box img, .id-elem-qr-box canvas {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
 
-    /* Neon Glow UI Effects */
-    .glow-blue {
-      box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.5);
-    }
-    .glow-red {
-      box-shadow: 0 0 20px -3px rgba(220, 38, 38, 0.5);
-    }
+/* Neon Glow UI Effects */
+.glow-blue {
+  box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.5);
+}
+.glow-red {
+  box-shadow: 0 0 20px -3px rgba(220, 38, 38, 0.5);
+}
 
-    /* Print Styles for ID Badges */
-    @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        padding: 20px;
-        background: white !important;
-      }
-      .no-print { display: none !important; }
-      .id-card-container {
-        page-break-inside: avoid;
-        break-inside: avoid;
-        box-shadow: none !important;
-        border: 1px solid #cbd5e1;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
+/* Print Styles for A4 Full-Page ID Badges */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+  body * { 
+    visibility: hidden; 
+  }
+  #print-area, #print-area * { 
+    visibility: visible; 
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+  }
+  .no-print { 
+    display: none !important; 
+  }
+  .id-card-container {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
