@@ -36,10 +36,13 @@
       color: #f3f4f6;
     }
 
-    /* Standard Original CR80 ID Badge Dimensions (2.125" x 3.375" / 324px x 514px scaled proportional) */
+    /* A4 portrait ID template: 210mm x 297mm (794px x 1123px at 96dpi).
+       The original 324px x 514px design layer is scaled proportionally inside it. */
     .id-card-container {
-      width: 324px;
-      height: 514px;
+      width: 794px;
+      height: 1123px;
+      max-width: 100%;
+      aspect-ratio: 210 / 297;
       position: relative;
       background-size: cover;
       background-position: center;
@@ -49,6 +52,22 @@
       box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(37, 99, 235, 0.2);
       background-color: #0b1d3a;
       font-family: 'Poppins', sans-serif !important;
+    }
+
+    .id-design-layer {
+      width: 324px;
+      height: 514px;
+      position: absolute;
+      inset: 0 auto auto 0;
+      transform: scale(2.184);\n      left: 43.5px;
+      transform-origin: top left;
+    }
+
+    /* Fit the A4 preview in the calibrator without changing its print dimensions. */
+    #calibrator-card-target .id-card-container {
+      zoom: 0.48;
+      margin-bottom: -539px;
+      flex: 0 0 auto;
     }
 
     /* Base Default Card Design */
@@ -115,26 +134,35 @@
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
+      @page { size: A4 portrait; margin: 0; }
       #print-area {
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        padding: 20px;
+        width: 210mm;
+        display: block;
+        padding: 0;
+        margin: 0;
         background: white !important;
       }
       .no-print { display: none !important; }
       .id-card-container {
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        page-break-after: always;
+        break-after: page;
         page-break-inside: avoid;
         break-inside: avoid;
         box-shadow: none !important;
-        border: 1px solid #cbd5e1;
+        border: 0 !important;
+        zoom: 1 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
+      #calibrator-card-target .id-card-container { zoom: 0.48 !important; }
     }
   </style>
 </head>
@@ -382,7 +410,7 @@
 
         <!-- Live Calibrator Card Preview -->
         <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-950 p-6 rounded-2xl border border-slate-800">
-          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-eye mr-1"></i> Live Card Preview (Original CR80 Scale)</span>
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-eye mr-1"></i> Live Card Preview (A4 Portrait)</span>
           <div id="calibrator-card-target"></div>
         </div>
       </div>
@@ -842,6 +870,7 @@
 
       return `
         <div class="id-card-container ${currentTemplateImage ? '' : 'default-id-bg'}" style="${templateBgStyle}">
+          <div class="id-design-layer">
           ${!currentTemplateImage ? `
             <div class="p-3 bg-gradient-to-r from-red-700 via-blue-900 to-blue-950 flex items-center justify-between border-b border-white/20">
               <img src="${customLogoImage}" class="h-8 object-contain">
@@ -892,6 +921,7 @@
             width: ${config.qrSize}px;
             height: ${config.qrSize}px;
           "></div>
+          </div>
         </div>
       `;
     }
