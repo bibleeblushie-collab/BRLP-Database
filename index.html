@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Babe Ruth League Philippines - Athlete Gallery & ID Management</title>
+  <title>Babe Ruth League Philippines - A4 ID Management & Calibrator</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -36,15 +36,13 @@
       color: #f3f4f6;
     }
 
-    /* A4 portrait ID template: 210mm x 297mm (794px x 1123px at 96dpi).
-       The original 324px x 514px design layer is scaled proportionally inside it. */
+    /* Standard A4 Full Physical Dimensions (210mm x 297mm / 794px x 1123px at 96 DPI) */
     .id-card-container {
       width: 794px;
       height: 1123px;
-      max-width: 100%;
       aspect-ratio: 210 / 297;
       position: relative;
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
       border-radius: 12px;
@@ -54,25 +52,35 @@
       font-family: 'Poppins', sans-serif !important;
     }
 
+    /* Full-span A4 Design Layer (No cropping/scaling distortion) */
     .id-design-layer {
-      width: 324px;
-      height: 514px;
+      width: 100%;
+      height: 100%;
       position: absolute;
-      inset: 0 auto auto 0;
-      transform: scale(2.184);\n      left: 43.5px;
+      inset: 0;
+    }
+
+    /* Calibrator Preview Scaled Box */
+    .calibrator-preview-wrapper {
+      width: 357px;
+      height: 505px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      background-color: #020617;
+    }
+    .calibrator-preview-wrapper .id-card-container {
+      transform: scale(0.45);
       transform-origin: top left;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
 
-    /* Fit the A4 preview in the calibrator without changing its print dimensions. */
-    #calibrator-card-target .id-card-container {
-      zoom: 0.48;
-      margin-bottom: -539px;
-      flex: 0 0 auto;
-    }
-
-    /* Base Default Card Design */
+    /* Default Background Gradient */
     .default-id-bg {
-      background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 100%);
+      background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 50%, #09152b 100%);
     }
 
     /* Element Positioning Layers */
@@ -83,7 +91,7 @@
       pointer-events: none;
     }
 
-    /* Strict Pure White Poppins Bold Text - No Background Highlight / No Highlight Overlay */
+    /* Pure White Poppins Bold Text */
     .id-card-text {
       position: absolute;
       z-index: 5;
@@ -91,15 +99,11 @@
       font-weight: 700 !important;
       color: #ffffff !important;
       background: transparent !important;
-      background-color: transparent !important;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.15;
-      text-shadow: none !important;
-      box-shadow: none !important;
-      border: none !important;
     }
 
     /* 1:1 Square QR Box Container */
@@ -111,41 +115,46 @@
       align-items: center;
       justify-content: center;
       background-color: #ffffff;
-      padding: 4px;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
-    .id-elem-qr-box img, .id-elem-qr-box canvas {
+    .id-elem-qr-box img, 
+    .id-elem-qr-box canvas {
       width: 100% !important;
       height: 100% !important;
-      aspect-ratio: 1 / 1;
+      display: block !important;
+      visibility: visible !important;
       object-fit: contain;
     }
 
-    /* Neon Glow UI Effects */
-    .glow-blue {
-      box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.5);
-    }
-    .glow-red {
-      box-shadow: 0 0 20px -3px rgba(220, 38, 38, 0.5);
-    }
+    .glow-blue { box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.5); }
+    .glow-red { box-shadow: 0 0 20px -3px rgba(220, 38, 38, 0.5); }
 
-    /* Print Styles for ID Badges */
+    /* Exact A4 Print Configuration */
     @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      @page { size: A4 portrait; margin: 0; }
+      body * { visibility: hidden !important; }
+      #print-area, #print-area * { visibility: visible !important; }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
       #print-area {
         position: absolute;
         left: 0;
         top: 0;
         width: 210mm;
-        display: block;
-        padding: 0;
         margin: 0;
+        padding: 0;
         background: white !important;
       }
-      .no-print { display: none !important; }
       .id-card-container {
         width: 210mm !important;
         height: 297mm !important;
@@ -158,26 +167,32 @@
         break-inside: avoid;
         box-shadow: none !important;
         border: 0 !important;
-        zoom: 1 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        transform: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-      #calibrator-card-target .id-card-container { zoom: 0.48 !important; }
+      .id-elem-qr-box {
+        background-color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .id-elem-qr-box img,
+      .id-elem-qr-box canvas {
+        display: block !important;
+        visibility: visible !important;
+      }
     }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
 
-  <!-- Aesthetic Header with Babe Ruth Philippines Logo & Prominent Red/Blue Accents -->
   <header class="bg-slate-900/90 border-b border-blue-900/50 backdrop-blur-md sticky top-0 z-40 shadow-xl">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center gap-3">
-        <!-- Babe Ruth Philippines Logo Emblem -->
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 via-blue-900 to-blue-950 p-0.5 shadow-lg flex items-center justify-center glow-red">
           <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden p-1">
             <img id="header-logo-img" src="https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Babe_Ruth_League_logo.svg/1200px-Babe_Ruth_League_logo.svg.png" 
-                 alt="Babe Ruth League Logo" 
-                 class="w-full h-full object-contain"
+                 alt="Babe Ruth Logo" class="w-full h-full object-contain"
                  onerror="this.onerror=null; this.src='https://img.icons8.com/color/96/baseball.png';">
           </div>
         </div>
@@ -188,11 +203,10 @@
             </h1>
             <span class="bg-red-600/90 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow">Philippines</span>
           </div>
-          <p class="text-xs text-blue-300/80 font-medium">Official Athlete Gallery & ID Management</p>
+          <p class="text-xs text-blue-300/80 font-medium">Official A4 ID Management & Calibrator Suite</p>
         </div>
       </div>
 
-      <!-- Header Control CTAs -->
       <div class="flex items-center gap-2.5">
         <button onclick="openModal('sheet-modal')" class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg glow-red border border-red-500/30">
           <i class="fa-solid fa-link text-red-200"></i> Sync Google Sheet
@@ -207,7 +221,6 @@
     </div>
   </header>
 
-  <!-- Diagnostic Alert Banner -->
   <div id="sync-banner" class="hidden bg-red-950/40 border-b border-red-800/50 text-red-200 px-4 py-2.5 text-xs backdrop-blur-sm">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -218,33 +231,23 @@
     </div>
   </div>
 
-  <!-- Main Dark Content Container -->
   <main class="max-w-7xl mx-auto px-4 py-6">
-
-    <!-- Dark Filters & Search Toolbar -->
     <section class="bg-slate-900/80 p-4 rounded-2xl border border-blue-900/40 shadow-2xl mb-6 backdrop-blur-md relative overflow-hidden">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 relative z-10">
-        <!-- Search Input -->
         <div class="lg:col-span-2 relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-blue-400 text-xs"></i>
           <input type="text" id="search-input" oninput="applyFilters()" placeholder="Search name, jersey #, charter..." class="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition">
         </div>
-
-        <!-- Sport Filter -->
         <div>
           <select id="filter-sport" onchange="applyFilters()" class="w-full py-2.5 px-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition">
             <option value="">All Sports</option>
           </select>
         </div>
-
-        <!-- Age Division Filter & Control -->
         <div>
           <select id="filter-division" onchange="applyFilters()" class="w-full py-2.5 px-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition">
             <option value="">All Age Divisions</option>
           </select>
         </div>
-
-        <!-- Region Filter -->
         <div>
           <select id="filter-region" onchange="applyFilters()" class="w-full py-2.5 px-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition">
             <option value="">All Charters / Regions</option>
@@ -252,7 +255,6 @@
         </div>
       </div>
 
-      <!-- Action Bar -->
       <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs text-slate-400 relative z-10">
         <div>Showing <span id="showing-count" class="font-extrabold text-blue-400">0</span> athletes</div>
         <div class="flex items-center gap-3">
@@ -264,15 +266,10 @@
       </div>
     </section>
 
-    <!-- Athlete Roster Cards Grid -->
-    <section id="athlete-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <!-- Dynamic Dark Athlete Cards Rendered Here -->
-    </section>
+    <section id="athlete-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></section>
   </main>
 
-  <!-- ================= MODALS ================= -->
-
-  <!-- Google Sheet Sync Modal -->
+  <!-- Modals -->
   <div id="sheet-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-blue-900/50 overflow-hidden">
       <div class="bg-gradient-to-r from-blue-950 to-slate-900 px-5 py-4 text-white flex justify-between items-center border-b border-blue-900/40">
@@ -281,17 +278,10 @@
       </div>
       <div class="p-5 space-y-4 text-xs">
         <p class="text-slate-300">Paste your Google Sheet link or Published CSV URL to sync your live athlete roster.</p>
-        
         <div>
           <label class="block font-semibold text-slate-300 mb-1.5">Google Sheet Share / CSV Link</label>
           <input type="text" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 focus:outline-none">
         </div>
-
-        <div class="bg-blue-950/50 border border-blue-800/40 rounded-xl p-3 text-blue-200 text-xs space-y-1">
-          <p class="font-bold"><i class="fa-solid fa-circle-info mr-1 text-blue-400"></i>Required Share Setting:</p>
-          <p class="text-slate-300">Set access to <strong>"Anyone with the link can view"</strong> or use <strong>File &gt; Share &gt; Publish to Web (CSV)</strong>.</p>
-        </div>
-
         <div class="flex justify-end gap-2.5 pt-2">
           <button onclick="closeModal('sheet-modal')" class="px-4 py-2.5 bg-slate-800 text-slate-300 font-semibold rounded-xl hover:bg-slate-700">Cancel</button>
           <button onclick="saveSheetUrl()" class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg glow-red">Sync Spreadsheet</button>
@@ -300,7 +290,6 @@
     </div>
   </div>
 
-  <!-- Profile & Online Document Verifier Modal -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 rounded-2xl max-w-2xl w-full shadow-2xl border border-blue-900/50 overflow-hidden max-h-[90vh] flex flex-col">
       <div class="bg-gradient-to-r from-blue-950 to-slate-900 px-5 py-4 text-white flex justify-between items-center border-b border-blue-900/40">
@@ -310,714 +299,16 @@
         </div>
         <button onclick="closeModal('profile-modal')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
-      <div id="profile-content" class="p-6 overflow-y-auto space-y-6 text-xs text-slate-200">
-        <!-- Dynamic Profile Content Rendered Here -->
-      </div>
+      <div id="profile-content" class="p-6 overflow-y-auto space-y-6 text-xs text-slate-200"></div>
     </div>
   </div>
 
-  <!-- ID Template Calibrator Modal -->
+  <!-- Calibrator Modal -->
   <div id="calibrator-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 rounded-2xl max-w-5xl w-full shadow-2xl border border-blue-900/60 overflow-hidden max-h-[95vh] flex flex-col">
       <div class="bg-gradient-to-r from-blue-950 to-slate-900 px-5 py-4 text-white flex justify-between items-center border-b border-blue-900/40">
-        <h3 class="font-bold text-sm text-red-400"><i class="fa-solid fa-sliders mr-2"></i>ID Card Calibration & Layout Controls</h3>
+        <h3 class="font-bold text-sm text-red-400"><i class="fa-solid fa-sliders mr-2"></i>A4 ID Card Layout & Calibration Controls</h3>
         <button onclick="closeModal('calibrator-modal')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
 
-      <div class="p-5 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Controls Column -->
-        <div class="lg:col-span-7 space-y-4 text-xs">
-          
-          <!-- Logo & Graphic Template Uploads -->
-          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
-            <div>
-              <label class="block font-bold text-red-400 mb-1">Upload Babe Ruth League Logo Photo</label>
-              <input type="file" id="logo-upload" accept="image/*" onchange="handleLogoUpload(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-500">
-            </div>
-            <div>
-              <label class="block font-bold text-blue-300 mb-1">Custom Background Template Graphic</label>
-              <input type="file" id="template-upload" accept="image/*" onchange="handleTemplateUpload(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
-            </div>
-          </div>
-
-          <!-- Auto Background Removal Controls -->
-          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <span class="font-bold text-red-400 block">Auto Photo Background Removal</span>
-                <span class="text-[10px] text-slate-400">Keys out light/white backgrounds on athlete photo</span>
-              </div>
-              <input type="checkbox" id="bg-remove-toggle" onchange="updateCalibrator()" checked class="w-4 h-4 text-red-600 rounded bg-slate-900 border-slate-700">
-            </div>
-            <div class="pt-1">
-              <label class="text-[10px] text-slate-400">Sensitivity Threshold</label>
-              <input type="range" id="bg-threshold" min="150" max="250" value="225" oninput="updateCalibrator()" class="w-full">
-            </div>
-          </div>
-
-          <!-- Photo Placement Controls -->
-          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-            <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-1">Athlete Photo Position & Scaling</h4>
-            <div class="grid grid-cols-2 gap-2.5">
-              <div><label class="text-[10px] text-slate-400">Photo X (Left/Right)</label><input type="range" id="p-x" min="0" max="300" value="45" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Photo Y (Top/Bottom)</label><input type="range" id="p-y" min="0" max="300" value="110" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Photo Width (px)</label><input type="range" id="p-w" min="50" max="300" value="230" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Photo Height (px)</label><input type="range" id="p-h" min="50" max="350" value="260" oninput="updateCalibrator()" class="w-full"></div>
-            </div>
-          </div>
-
-          <!-- Text Positions & Sizing Controls (No duplication of role, full Age Division Control) -->
-          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5">
-            <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-1">Text Calibration Controls (Pure White Poppins Bold)</h4>
-            
-            <div class="grid grid-cols-2 gap-2.5">
-              <!-- Name Controls -->
-              <div><label class="text-[10px] text-slate-400">Name X (Left/Right)</label><input type="range" id="t-name-x" min="-150" max="150" value="0" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Name Y (Top/Bottom)</label><input type="range" id="t-name-y" min="200" max="480" value="340" oninput="updateCalibrator()" class="w-full"></div>
-              
-              <!-- Single Clean Role Controls -->
-              <div><label class="text-[10px] text-slate-400">Role X (Left/Right)</label><input type="range" id="t-role-x" min="-150" max="150" value="0" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Role Y (Top/Bottom)</label><input type="range" id="t-role-y" min="0" max="450" value="70" oninput="updateCalibrator()" class="w-full"></div>
-
-              <!-- Age Division Controls -->
-              <div><label class="text-[10px] text-slate-400">Age Division X (Left/Right)</label><input type="range" id="t-div-x" min="-150" max="150" value="0" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Age Division Y (Top/Bottom)</label><input type="range" id="t-div-y" min="200" max="500" value="415" oninput="updateCalibrator()" class="w-full"></div>
-
-              <!-- Charter Controls -->
-              <div><label class="text-[10px] text-slate-400">Charter X (Left/Right)</label><input type="range" id="t-charter-x" min="-150" max="150" value="0" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Charter Y (Top/Bottom)</label><input type="range" id="t-charter-y" min="200" max="500" value="380" oninput="updateCalibrator()" class="w-full"></div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-              <div><label class="text-[10px] text-slate-400">Name Font Size (px)</label><input type="range" id="t-font-size" min="10" max="24" value="15" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Role Font Size (px)</label><input type="range" id="t-role-size" min="10" max="24" value="13" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Division Font Size (px)</label><input type="range" id="t-div-size" min="10" max="24" value="12" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Charter Font Size (px)</label><input type="range" id="t-charter-size" min="10" max="24" value="12" oninput="updateCalibrator()" class="w-full"></div>
-            </div>
-          </div>
-
-          <!-- QR Code Box Controls -->
-          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-            <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-1">1:1 Square QR Box Position & Size</h4>
-            <div class="grid grid-cols-3 gap-2">
-              <div><label class="text-[10px] text-slate-400">QR X Position</label><input type="range" id="qr-x" min="0" max="250" value="25" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">QR Y Position</label><input type="range" id="qr-y" min="200" max="480" value="400" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Square Size (px)</label><input type="range" id="qr-size" min="40" max="120" value="80" oninput="updateCalibrator()" class="w-full"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Live Calibrator Card Preview -->
-        <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-950 p-6 rounded-2xl border border-slate-800">
-          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-eye mr-1"></i> Live Card Preview (A4 Portrait)</span>
-          <div id="calibrator-card-target"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Print Hidden Area -->
-  <div id="print-area"></div>
-
-  <!-- JavaScript Application Logic -->
-  <script>
-    // Global System State
-    let athletesData = [];
-    let selectedAthleteIds = new Set();
-    let currentTemplateImage = null;
-    let customLogoImage = "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Babe_Ruth_League_logo.svg/1200px-Babe_Ruth_League_logo.svg.png";
-    let processedPhotoCache = new Map();
-
-    // Calibration Configuration
-    let config = {
-      photoX: 45, photoY: 110, photoW: 230, photoH: 260,
-      roleX: 0, roleY: 70, roleSize: 13,
-      nameX: 0, nameY: 340, fontSize: 15,
-      divX: 0, divY: 415, divSize: 12,
-      charterX: 0, charterY: 380, charterSize: 12,
-      qrX: 25, qrY: 400, qrSize: 80,
-      autoRemoveBg: true,
-      bgThreshold: 225
-    };
-
-    // Default Mock Athletes Data
-    const mockAthletes = [
-      {
-        id: "ATH-101",
-        name: "ICAYAN, KAIZER EMMANUEL",
-        birthday: "2008-05-14",
-        sport: "BASEBALL",
-        division: "18U DIVISION",
-        team: "MINDANAO EAGLES",
-        city: "CAGAYAN DE ORO",
-        region: "MINDANAO",
-        position: "CATCHER / ATHLETE",
-        jersey: "10",
-        season: "2026-2027",
-        photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop",
-        psa: "https://drive.google.com/file/d/sample1",
-        schoolId: "https://drive.google.com/file/d/sample2",
-        medical: "https://drive.google.com/file/d/sample3",
-        waiver: "https://drive.google.com/file/d/sample4",
-        insurance: "https://drive.google.com/file/d/sample5",
-        charter: "MINDANAO CHARTER"
-      },
-      {
-        id: "ATH-102",
-        name: "SANTOS, JUAN DELA CRUZ",
-        birthday: "2009-11-20",
-        sport: "SOFTBALL",
-        division: "15U DIVISION",
-        team: "LUZON STARS",
-        city: "MANILA",
-        region: "LUZON",
-        position: "PITCHER",
-        jersey: "07",
-        season: "2026-2027",
-        photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop",
-        psa: "https://drive.google.com/file/d/sample6",
-        schoolId: "",
-        medical: "https://drive.google.com/file/d/sample7",
-        waiver: "https://drive.google.com/file/d/sample8",
-        insurance: "",
-        charter: "LUZON CHARTER"
-      }
-    ];
-
-    // On Load Startup
-    window.addEventListener('DOMContentLoaded', () => {
-      loadSavedConfig();
-      loadSheetData();
-      checkUrlHash();
-    });
-
-    // Hash Route Handling
-    function checkUrlHash() {
-      const hash = window.location.hash;
-      if (hash.startsWith('#profile-')) {
-        const athId = hash.replace('#profile-', '');
-        const ath = athletesData.find(a => a.id === athId);
-        if (ath) openProfileModal(ath);
-      }
-    }
-
-    // Convert standard Google Sheet URL to GViz CSV Endpoint
-    function formatSheetCsvUrl(rawUrl) {
-      if (!rawUrl) return '';
-      if (rawUrl.includes('/gviz/tq?tqx=out:csv')) return rawUrl;
-
-      const matches = rawUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (matches && matches[1]) {
-        const sheetId = matches[1];
-        let gidMatch = rawUrl.match(/gid=([0-9]+)/);
-        let gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
-        return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv${gidParam}`;
-      }
-      return rawUrl;
-    }
-
-    // CSV Load & Parser
-    function loadSheetData() {
-      const savedUrl = localStorage.getItem('br_sheet_url');
-      if (!savedUrl) {
-        athletesData = mockAthletes;
-        renderGrid();
-        populateFilterDropdowns();
-        document.getElementById('sync-banner').classList.remove('hidden');
-        return;
-      }
-
-      const csvUrl = formatSheetCsvUrl(savedUrl);
-
-      Papa.parse(csvUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          if (results.data && results.data.length > 0) {
-            athletesData = parseCsvRows(results.data);
-            document.getElementById('sync-banner').classList.add('hidden');
-          } else {
-            athletesData = mockAthletes;
-            document.getElementById('sync-banner').classList.remove('hidden');
-          }
-          renderGrid();
-          populateFilterDropdowns();
-        },
-        error: (err) => {
-          console.warn("CSV Error, loading mock data:", err);
-          athletesData = mockAthletes;
-          document.getElementById('sync-banner').classList.remove('hidden');
-          renderGrid();
-          populateFilterDropdowns();
-        }
-      });
-    }
-
-    // Map 17 Header Columns
-    function parseCsvRows(rows) {
-      return rows.map((row, index) => {
-        const getVal = (key) => {
-          const match = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-          return match ? row[match].trim() : '';
-        };
-
-        return {
-          id: getVal('ID') || `ATH-${100 + index}`,
-          name: getVal('Complete Name') || getVal('Name') || 'UNKNOWN ATHLETE',
-          birthday: getVal('Birthday') || '',
-          sport: getVal('Sport') || 'BASEBALL',
-          division: getVal('Division/ Age Group') || getVal('Division') || 'CAL RIPKEN (12U)',
-          team: getVal('Team/ League') || getVal('Team') || '',
-          city: getVal('City/ Province') || '',
-          region: getVal('Region') || '',
-          position: getVal('Position') || getVal('Role') || 'PLAYER',
-          jersey: getVal('Jersey Number') || '',
-          season: getVal('Babe Ruth Season (Year)') || '2026-2027',
-          photo: getVal('Athlete Photo') || 'https://via.placeholder.com/300x400?text=No+Photo',
-          psa: getVal('PSA Birth Certificate'),
-          schoolId: getVal('School ID/Certificate of Enrollment'),
-          medical: getVal('Medical Certificate'),
-          waiver: getVal('Parental Consent/Waiver'),
-          insurance: getVal('Insurance'),
-          charter: getVal('Charter') || 'BABE RUTH CHARTER'
-        };
-      });
-    }
-
-    function saveSheetUrl() {
-      const url = document.getElementById('sheet-url-input').value.trim();
-      if (url) {
-        localStorage.setItem('br_sheet_url', url);
-        closeModal('sheet-modal');
-        loadSheetData();
-      }
-    }
-
-    // Render Dark Athlete Grid
-    function renderGrid(filteredList = null) {
-      const list = filteredList || athletesData;
-      const grid = document.getElementById('athlete-grid');
-      grid.innerHTML = '';
-
-      document.getElementById('showing-count').innerText = list.length;
-
-      list.forEach(ath => {
-        const card = document.createElement('div');
-        card.className = "bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden shadow-xl hover:border-blue-500/50 hover:shadow-2xl transition flex flex-col justify-between group";
-        
-        card.innerHTML = `
-          <div>
-            <div class="h-48 bg-slate-950 relative overflow-hidden flex items-center justify-center p-2">
-              <img src="${ath.photo}" alt="${ath.name}" class="w-full h-full object-contain group-hover:scale-105 transition duration-300" onerror="this.src='https://via.placeholder.com/300x400?text=No+Photo'">
-              <span class="absolute top-2.5 right-2.5 bg-blue-900/90 border border-blue-500/40 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow">${ath.division}</span>
-              <span class="absolute bottom-2.5 left-2.5 bg-red-600 text-white font-black text-xs px-2.5 py-0.5 rounded shadow glow-red">#${ath.jersey || '00'}</span>
-            </div>
-            
-            <div class="p-4 space-y-2">
-              <h3 class="font-black text-white text-sm leading-tight tracking-tight">${ath.name}</h3>
-              <div class="text-[11px] text-slate-400 space-y-1">
-                <div class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-red-500 w-4"></i> ${ath.charter}</div>
-                <div class="flex items-center gap-1.5"><i class="fa-solid fa-shield text-blue-400 w-4"></i> ${ath.team || 'No Team'}</div>
-                <div class="flex items-center gap-1.5"><i class="fa-solid fa-user-tag text-slate-500 w-4"></i> <span class="font-bold text-white uppercase">${ath.position}</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="px-4 py-3 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between gap-2">
-            <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
-              <input type="checkbox" onchange="toggleSelectAthlete('${ath.id}', this.checked)" ${selectedAthleteIds.has(ath.id) ? 'checked' : ''} class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4">
-              <span>Select ID</span>
-            </label>
-
-            <div class="flex items-center gap-1.5">
-              <button onclick='openProfileModal(${JSON.stringify(ath).replace(/'/g, "&apos;")})' class="p-2 bg-blue-950 hover:bg-blue-900 border border-blue-700/40 text-blue-300 rounded-lg text-xs font-bold transition" title="View Verified Profile">
-                <i class="fa-solid fa-id-card"></i>
-              </button>
-              <button onclick='printSingleId(${JSON.stringify(ath).replace(/'/g, "&apos;")})' class="p-2 bg-red-950 hover:bg-red-900 border border-red-700/40 text-red-300 rounded-lg text-xs font-bold transition" title="Print ID Card">
-                <i class="fa-solid fa-print"></i>
-              </button>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function populateFilterDropdowns() {
-      const sports = [...new Set(athletesData.map(a => a.sport).filter(Boolean))];
-      const divisions = [...new Set(athletesData.map(a => a.division).filter(Boolean))];
-      const regions = [...new Set(athletesData.map(a => a.charter || a.region).filter(Boolean))];
-
-      populateSelect('filter-sport', sports);
-      populateSelect('filter-division', divisions);
-      populateSelect('filter-region', regions);
-    }
-
-    function populateSelect(id, items) {
-      const select = document.getElementById(id);
-      const firstOpt = select.options[0];
-      select.innerHTML = '';
-      select.appendChild(firstOpt);
-      items.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item;
-        opt.innerText = item;
-        select.appendChild(opt);
-      });
-    }
-
-    function applyFilters() {
-      const q = document.getElementById('search-input').value.toLowerCase();
-      const sport = document.getElementById('filter-sport').value;
-      const div = document.getElementById('filter-division').value;
-      const region = document.getElementById('filter-region').value;
-
-      const filtered = athletesData.filter(a => {
-        const matchesSearch = !q || a.name.toLowerCase().includes(q) || a.jersey.includes(q) || a.charter.toLowerCase().includes(q);
-        const matchesSport = !sport || a.sport === sport;
-        const matchesDiv = !div || a.division === div;
-        const matchesRegion = !region || (a.charter === region || a.region === region);
-        return matchesSearch && matchesSport && matchesDiv && matchesRegion;
-      });
-
-      renderGrid(filtered);
-    }
-
-    // Profile & Online Attachment Verifier Modal
-    function openProfileModal(ath) {
-      const modal = document.getElementById('profile-modal');
-      const content = document.getElementById('profile-content');
-      
-      const docs = [
-        { name: "PSA Birth Certificate", link: ath.psa },
-        { name: "School ID / Enrollment Cert", link: ath.schoolId },
-        { name: "Medical Certificate", link: ath.medical },
-        { name: "Parental Consent & Waiver", link: ath.waiver },
-        { name: "Insurance Coverage", link: ath.insurance },
-        { name: "Charter Registration", link: ath.charter }
-      ];
-
-      content.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start border-b border-slate-800 pb-6">
-          <img src="${ath.photo}" class="w-32 h-40 object-contain bg-slate-950 border border-slate-800 rounded-xl shadow-lg">
-          <div class="space-y-2 text-center sm:text-left flex-1">
-            <h2 class="text-xl font-black text-white">${ath.name}</h2>
-            <div class="inline-block bg-red-600 text-white font-extrabold px-3 py-1 rounded-full text-xs uppercase tracking-wider shadow glow-red">${ath.position} • #${ath.jersey}</div>
-            <div class="grid grid-cols-2 gap-2 text-slate-300 pt-3 text-xs">
-              <div><strong class="text-slate-400">Charter:</strong> ${ath.charter}</div>
-              <div><strong class="text-slate-400">Age Division:</strong> ${ath.division}</div>
-              <div><strong class="text-slate-400">Team / League:</strong> ${ath.team}</div>
-              <div><strong class="text-slate-400">City / Region:</strong> ${ath.city || ath.region}</div>
-            </div>
-          </div>
-          <div id="modal-qr" class="w-24 h-24 bg-white p-2 rounded-xl shadow-lg flex items-center justify-center"></div>
-        </div>
-
-        <div class="space-y-3">
-          <h4 class="font-extrabold text-blue-400 text-xs tracking-wider uppercase flex items-center gap-1.5"><i class="fa-solid fa-file-circle-check text-emerald-400"></i> Online Document Verification Checklist</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            ${docs.map(d => `
-              <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-                <span class="font-semibold text-slate-300">${d.name}</span>
-                ${d.link ? `
-                  <a href="${d.link}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-extrabold text-[10px] flex items-center gap-1 transition shadow">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Verified
-                  </a>
-                ` : `
-                  <span class="px-2 py-1 bg-slate-800 text-slate-500 rounded font-bold text-[10px]">Pending</span>
-                `}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
-      modal.classList.remove('hidden');
-
-      setTimeout(() => {
-        const qrContainer = document.getElementById('modal-qr');
-        qrContainer.innerHTML = '';
-        new QRCode(qrContainer, {
-          text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
-          width: 80,
-          height: 80
-        });
-      }, 50);
-    }
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    function toggleSelectAthlete(id, checked) {
-      if (checked) selectedAthleteIds.add(id);
-      else selectedAthleteIds.delete(id);
-      document.getElementById('print-count').innerText = selectedAthleteIds.size;
-    }
-
-    function toggleSelectAll(checkbox) {
-      if (checkbox.checked) {
-        athletesData.forEach(a => selectedAthleteIds.add(a.id));
-      } else {
-        selectedAthleteIds.clear();
-      }
-      document.getElementById('print-count').innerText = selectedAthleteIds.size;
-      renderGrid();
-    }
-
-    // Upload Handlers
-    function handleLogoUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          customLogoImage = e.target.result;
-          document.getElementById('header-logo-img').src = customLogoImage;
-          updateCalibrator();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function handleTemplateUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentTemplateImage = e.target.result;
-          updateCalibrator();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // Config Persistence & Calibration Controls
-    function loadSavedConfig() {
-      const saved = localStorage.getItem('br_id_config');
-      if (saved) config = { ...config, ...JSON.parse(saved) };
-      
-      document.getElementById('p-x').value = config.photoX;
-      document.getElementById('p-y').value = config.photoY;
-      document.getElementById('p-w').value = config.photoW;
-      document.getElementById('p-h').value = config.photoH;
-      
-      document.getElementById('t-role-x').value = config.roleX || 0;
-      document.getElementById('t-role-y').value = config.roleY || 70;
-      document.getElementById('t-role-size').value = config.roleSize || 13;
-      
-      document.getElementById('t-name-x').value = config.nameX || 0;
-      document.getElementById('t-name-y').value = config.nameY || 340;
-      document.getElementById('t-font-size').value = config.fontSize || 15;
-
-      document.getElementById('t-div-x').value = config.divX || 0;
-      document.getElementById('t-div-y').value = config.divY || 415;
-      document.getElementById('t-div-size').value = config.divSize || 12;
-
-      document.getElementById('t-charter-x').value = config.charterX || 0;
-      document.getElementById('t-charter-y').value = config.charterY || 380;
-      document.getElementById('t-charter-size').value = config.charterSize || 12;
-
-      document.getElementById('qr-x').value = config.qrX;
-      document.getElementById('qr-y').value = config.qrY;
-      document.getElementById('qr-size').value = config.qrSize;
-      document.getElementById('bg-remove-toggle').checked = config.autoRemoveBg;
-      document.getElementById('bg-threshold').value = config.bgThreshold || 225;
-    }
-
-    function updateCalibrator() {
-      config.photoX = parseInt(document.getElementById('p-x').value);
-      config.photoY = parseInt(document.getElementById('p-y').value);
-      config.photoW = parseInt(document.getElementById('p-w').value);
-      config.photoH = parseInt(document.getElementById('p-h').value);
-      
-      config.roleX = parseInt(document.getElementById('t-role-x').value);
-      config.roleY = parseInt(document.getElementById('t-role-y').value);
-      config.roleSize = parseInt(document.getElementById('t-role-size').value);
-      
-      config.nameX = parseInt(document.getElementById('t-name-x').value);
-      config.nameY = parseInt(document.getElementById('t-name-y').value);
-      config.fontSize = parseInt(document.getElementById('t-font-size').value);
-
-      config.divX = parseInt(document.getElementById('t-div-x').value);
-      config.divY = parseInt(document.getElementById('t-div-y').value);
-      config.divSize = parseInt(document.getElementById('t-div-size').value);
-
-      config.charterX = parseInt(document.getElementById('t-charter-x').value);
-      config.charterY = parseInt(document.getElementById('t-charter-y').value);
-      config.charterSize = parseInt(document.getElementById('t-charter-size').value);
-      
-      config.qrX = parseInt(document.getElementById('qr-x').value);
-      config.qrY = parseInt(document.getElementById('qr-y').value);
-      config.qrSize = parseInt(document.getElementById('qr-size').value);
-      config.autoRemoveBg = document.getElementById('bg-remove-toggle').checked;
-      config.bgThreshold = parseInt(document.getElementById('bg-threshold').value);
-
-      localStorage.setItem('br_id_config', JSON.stringify(config));
-
-      const target = document.getElementById('calibrator-card-target');
-      const sample = athletesData[0] || mockAthletes[0];
-      target.innerHTML = renderSingleCardHTML(sample);
-      renderCardQr(sample, `calib-qr-${sample.id}`);
-      applyPhotoTransparency(`calib-photo-${sample.id}`, sample.photo);
-    }
-
-    // HTML Rendering Engine - Pure White Poppins Bold Text, Standard CR80 Size, Clean Single Role Layer
-    function renderSingleCardHTML(ath) {
-      const templateBgStyle = currentTemplateImage 
-        ? `background-image: url('${currentTemplateImage}');` 
-        : ``;
-
-      return `
-        <div class="id-card-container ${currentTemplateImage ? '' : 'default-id-bg'}" style="${templateBgStyle}">
-          <div class="id-design-layer">
-          ${!currentTemplateImage ? `
-            <div class="p-3 bg-gradient-to-r from-red-700 via-blue-900 to-blue-950 flex items-center justify-between border-b border-white/20">
-              <img src="${customLogoImage}" class="h-8 object-contain">
-              <div class="id-card-text" style="position: relative; z-index: 10; font-size: 10px;">BABE RUTH LEAGUE</div>
-            </div>
-          ` : ''}
-          
-          <!-- Athlete Photo (Layered behind text: z-index 2) -->
-          <img id="calib-photo-${ath.id}" src="${ath.photo}" class="id-elem-photo" style="
-            left: ${config.photoX}px;
-            top: ${config.photoY}px;
-            width: ${config.photoW}px;
-            height: ${config.photoH}px;
-          " onerror="this.src='https://via.placeholder.com/300x400?text=Athlete'">
-
-          <!-- Single Clean Role Layer: Pure White Poppins Bold -->
-          <div class="id-card-text text-center w-full px-2" style="
-            left: ${config.roleX}px;
-            top: ${config.roleY}px;
-            font-size: ${config.roleSize}px;
-          ">${ath.position || 'PLAYER'}</div>
-
-          <!-- Name Text: Pure White Poppins Bold Overlay -->
-          <div class="id-card-text text-center w-full px-4" style="
-            left: ${config.nameX}px;
-            top: ${config.nameY}px;
-            font-size: ${config.fontSize}px;
-          ">${ath.name}</div>
-
-          <!-- Charter Text: Pure White Poppins Bold Overlay -->
-          <div class="id-card-text text-center w-full px-4" style="
-            left: ${config.charterX}px;
-            top: ${config.charterY}px;
-            font-size: ${config.charterSize}px;
-          ">${ath.charter}</div>
-
-          <!-- Age Division Text Control: Pure White Poppins Bold Overlay -->
-          <div class="id-card-text text-center w-full px-4" style="
-            left: ${config.divX}px;
-            top: ${config.divY}px;
-            font-size: ${config.divSize}px;
-          ">${ath.division}</div>
-
-          <!-- 1:1 Square QR Box Lower Left -->
-          <div id="calib-qr-${ath.id}" class="id-elem-qr-box" style="
-            left: ${config.qrX}px;
-            top: ${config.qrY}px;
-            width: ${config.qrSize}px;
-            height: ${config.qrSize}px;
-          "></div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Auto Background Removal Processing Canvas Engine
-    function applyPhotoTransparency(elementId, imgUrl) {
-      if (!config.autoRemoveBg || !imgUrl) return;
-
-      const imgElem = document.getElementById(elementId);
-      if (!imgElem) return;
-
-      const cacheKey = `${imgUrl}_${config.bgThreshold}`;
-      if (processedPhotoCache.has(cacheKey)) {
-        imgElem.src = processedPhotoCache.get(cacheKey);
-        return;
-      }
-
-      const tempImg = new Image();
-      tempImg.crossOrigin = "Anonymous";
-      tempImg.src = imgUrl;
-
-      tempImg.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = tempImg.naturalWidth || tempImg.width;
-          canvas.height = tempImg.naturalHeight || tempImg.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(tempImg, 0, 0);
-
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imgData.data;
-          const threshold = config.bgThreshold || 225;
-
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
-            if (r >= threshold && g >= threshold && b >= threshold) {
-              data[i+3] = 0;
-            }
-          }
-          ctx.putImageData(imgData, 0, 0);
-          const processedUrl = canvas.toDataURL();
-          processedPhotoCache.set(cacheKey, processedUrl);
-          imgElem.src = processedUrl;
-        } catch (e) {
-          console.warn("CORS/Canvas keying fallback to standard image:", e);
-        }
-      };
-    }
-
-    // Render 1:1 Square QR Code
-    function renderCardQr(ath, containerId) {
-      setTimeout(() => {
-        const container = document.getElementById(containerId);
-        if (container) {
-          container.innerHTML = '';
-          new QRCode(container, {
-            text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
-            width: config.qrSize - 8,
-            height: config.qrSize - 8
-          });
-        }
-      }, 30);
-    }
-
-    // Single Card Print Trigger
-    function printSingleId(ath) {
-      const area = document.getElementById('print-area');
-      area.innerHTML = renderSingleCardHTML(ath);
-      renderCardQr(ath, `calib-qr-${ath.id}`);
-      applyPhotoTransparency(`calib-photo-${ath.id}`, ath.photo);
-      setTimeout(() => window.print(), 350);
-    }
-
-    // Batch Card Print Trigger
-    function triggerBatchPrint() {
-      if (selectedAthleteIds.size === 0) {
-        alert("Please select at least one athlete for batch printing.");
-        return;
-      }
-      const area = document.getElementById('print-area');
-      area.innerHTML = '';
-
-      const selectedList = athletesData.filter(a => selectedAthleteIds.has(a.id));
-      selectedList.forEach(ath => {
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = renderSingleCardHTML(ath);
-        area.appendChild(wrapper.firstElementChild);
-      });
-
-      selectedList.forEach(ath => {
-        renderCardQr(ath, `calib-qr-${ath.id}`);
-        applyPhotoTransparency(`calib-photo-${ath.id}`, ath.photo);
-      });
-
-      setTimeout(() => window.print(), 600);
-    }
-  </script>
-</body>
-</html>
+      <div class="p-5 overflow-y-auto grid grid-
