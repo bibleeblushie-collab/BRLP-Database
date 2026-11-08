@@ -1,837 +1,467 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Babe Ruth League Philippines - Athlete Gallery & ID Management</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse for CSV parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <!-- QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babe Ruth League ID Card Generator</title>
+    <!-- Google Fonts: Poppins Bold -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --card-width: 3.375in;
+            --card-height: 2.125in;
+            --primary-bg: #0b1d3a;
+            --accent-red: #c8102e;
+        }
 
-    /* Custom ID Badge Canvas Styling */
-    .id-card-container {
-      width: 320px;
-      height: 500px;
-      position: relative;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
-      background-color: #ffffff;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    /* Base Default Card Design if no custom template uploaded */
-    .default-id-bg {
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-    }
+        body {
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    /* Template Graphics */
-    .id-template-graphic {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 1;
-    }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
 
-    /* Element Positioning Layers */
-    .id-elem-photo {
-      position: absolute;
-      z-index: 2;
-      object-fit: contain;
-      pointer-events: none;
-    }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .id-elem-text {
-      position: absolute;
-      z-index: 5;
-      font-weight: 800;
-      color: #ffffff;
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-shadow: 0px 1px 3px rgba(0,0,0,0.6);
-      line-height: 1.1;
-    }
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
 
-    .id-elem-role {
-      position: absolute;
-      z-index: 5;
-      font-weight: 800;
-      color: #1e3a8a;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+        .controls-section h2 {
+            font-size: 1.25rem;
+            color: #0b1d3a;
+            border-bottom: 2px solid #e4e6eb;
+            padding-bottom: 0.5rem;
+        }
 
-    /* Strict 1:1 Square QR Box Container */
-    .id-elem-qr-box {
-      position: absolute;
-      z-index: 6;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #ffffff;
-      padding: 4px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .id-elem-qr-box img, .id-elem-qr-box canvas {
-      width: 100% !important;
-      height: 100% !important;
-      aspect-ratio: 1 / 1;
-      object-fit: contain;
-    }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
 
-    /* Print Styles for ID Badges */
-    @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        padding: 20px;
-      }
-      .no-print { display: none !important; }
-      .id-card-container {
-        page-break-inside: avoid;
-        break-inside: avoid;
-        box-shadow: none !important;
-        border: 1px solid #cbd5e1;
-      }
-    }
-  </style>
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4b4f56;
+        }
+
+        input[type="text"], select, input[type="file"] {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+        }
+
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        /* ID Card Original Standard Size: CR80 (3.375" x 2.125") */
+        .id-card-wrapper {
+            perspective: 1000px;
+        }
+
+        .id-card {
+            width: 3.375in;
+            height: 2.125in;
+            background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 100%);
+            border-radius: 0.125in;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+            padding: 0.15in;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Red Accent Bar at Top */
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0.08in;
+            background: #c8102e;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.05in;
+        }
+
+        .logo-container {
+            width: 0.6in;
+            height: 0.45in;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .charter-text {
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: right;
+            line-height: 1.1;
+            text-transform: uppercase;
+            /* Explicitly ensuring no background highlight or shadow */
+            background: transparent !important;
+            text-shadow: none !important;
+        }
+
+        .card-body {
+            display: flex;
+            gap: 0.12in;
+            align-items: center;
+            margin-top: 0.05in;
+        }
+
+        .photo-box {
+            width: 0.65in;
+            height: 0.8in;
+            background-color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 3px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .details-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.02in;
+            overflow: hidden;
+        }
+
+        /* Strictly white Poppins bold text, no highlighting */
+        .card-text {
+            color: #ffffff !important;
+            font-family: 'Poppins', sans-serif !important;
+            font-weight: 700 !important;
+            background: transparent !important;
+            background-color: transparent !important;
+            text-shadow: none !important;
+            margin: 0;
+            padding: 0;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .name-text {
+            font-size: 9.5pt;
+            letter-spacing: -0.2px;
+        }
+
+        .role-text {
+            font-size: 7.5pt;
+            opacity: 0.95;
+            text-transform: uppercase;
+        }
+
+        .division-text {
+            font-size: 7pt;
+            opacity: 0.9;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 0.03in;
+        }
+
+        .id-number {
+            font-size: 6pt;
+            font-weight: 700;
+            color: #ffffff !important;
+            background: transparent !important;
+        }
+
+        .league-title {
+            font-size: 6pt;
+            font-weight: 700;
+            color: #ffffff !important;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: transparent !important;
+        }
+
+        .print-btn {
+            background-color: #0b1d3a;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .print-btn:hover {
+            background-color: #1e3a8a;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .id-card, .id-card * {
+                visibility: visible;
+            }
+            .id-card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
 </head>
-<body class="text-slate-800">
+<body>
 
-  <!-- Top Navigation Header -->
-  <header class="bg-blue-900 text-white shadow-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-black text-xl shadow">BR</div>
-        <div>
-          <h1 class="font-extrabold text-lg tracking-tight leading-tight">BABE RUTH LEAGUE PHILIPPINES</h1>
-          <p class="text-xs text-blue-200">Official Athlete Gallery & Live Verification System</p>
-        </div>
-      </div>
+    <div class="container">
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <h2>Babe Ruth League ID Settings</h2>
 
-      <div class="flex items-center gap-2">
-        <button onclick="openModal('sheet-modal')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow">
-          <i class="fa-solid fa-link"></i> Sync Google Sheet
-        </button>
-        <button onclick="openModal('calibrator-modal')" class="bg-blue-800 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-sliders"></i> ID Calibrator
-        </button>
-        <button onclick="triggerBatchPrint()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow">
-          <i class="fa-solid fa-print"></i> Print Selected IDs (<span id="print-count">0</span>)
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Diagnostic Alert Banner -->
-  <div id="sync-banner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i>
-        <span id="sync-banner-text">Notice: Demo data active. Connect your Google Sheet for live updates.</span>
-      </div>
-      <button onclick="openModal('sheet-modal')" class="underline font-bold text-amber-800 hover:text-amber-950">Fix Settings</button>
-    </div>
-  </div>
-
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6">
-
-    <!-- Filters & Search Toolbar -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <!-- Search Input -->
-        <div class="lg:col-span-2 relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="search-input" oninput="applyFilters()" placeholder="Search name, jersey #, charter..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none">
-        </div>
-
-        <!-- Sport Filter -->
-        <div>
-          <select id="filter-sport" onchange="applyFilters()" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="">All Sports</option>
-          </select>
-        </div>
-
-        <!-- Division Filter -->
-        <div>
-          <select id="filter-division" onchange="applyFilters()" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="">All Age Divisions</option>
-          </select>
-        </div>
-
-        <!-- Region Filter -->
-        <div>
-          <select id="filter-region" onchange="applyFilters()" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="">All Regions / Charters</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Action Bar -->
-      <div class="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
-        <div>Showing <span id="showing-count" class="font-bold text-slate-800">0</span> athletes</div>
-        <div class="flex items-center gap-3">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" class="rounded text-blue-600 focus:ring-blue-500">
-            <span>Select All for Batch Print</span>
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <!-- Athlete Roster Cards Grid -->
-    <section id="athlete-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <!-- Dynamic Athlete Cards Rendered Here -->
-    </section>
-  </main>
-
-  <!-- ================= MODALS ================= -->
-
-  <!-- Google Sheet Sync Modal -->
-  <div id="sheet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
-      <div class="bg-blue-900 px-5 py-4 text-white flex justify-between items-center">
-        <h3 class="font-bold text-sm"><i class="fa-solid fa-file-csv mr-2 text-red-500"></i>Connect Google Sheet</h3>
-        <button onclick="closeModal('sheet-modal')" class="text-slate-300 hover:text-white text-lg">&times;</button>
-      </div>
-      <div class="p-5 space-y-4 text-xs">
-        <p class="text-slate-600">Paste your Google Sheet link or Published CSV URL. The system automatically converts standard share links to live CSV feeds.</p>
-        
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Google Sheet Share / CSV Link</label>
-          <input type="text" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none">
-        </div>
-
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-xs space-y-1">
-          <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i>Required Share Setting:</p>
-          <p>Ensure sheet access is set to <strong>"Anyone with the link can view"</strong> or published via <strong>File &gt; Share &gt; Publish to Web (CSV)</strong>.</p>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <button onclick="closeModal('sheet-modal')" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200">Cancel</button>
-          <button onclick="saveSheetUrl()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow">Sync Spreadsheet</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile & Online Document Verifier Modal -->
-  <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
-      <div class="bg-blue-900 px-5 py-4 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-shield-halved text-red-500"></i>
-          <h3 class="font-bold text-sm">Verified Athlete Profile</h3>
-        </div>
-        <button onclick="closeModal('profile-modal')" class="text-slate-300 hover:text-white text-lg">&times;</button>
-      </div>
-      
-      <div id="profile-content" class="p-6 overflow-y-auto space-y-6 text-xs">
-        <!-- Dynamic Profile Content Rendered Here -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ID Template Calibrator Modal -->
-  <div id="calibrator-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-100 overflow-hidden max-h-[95vh] flex flex-col">
-      <div class="bg-blue-900 px-5 py-4 text-white flex justify-between items-center">
-        <h3 class="font-bold text-sm"><i class="fa-solid fa-sliders mr-2 text-red-500"></i>ID Card Template Layout Calibrator</h3>
-        <button onclick="closeModal('calibrator-modal')" class="text-slate-300 hover:text-white text-lg">&times;</button>
-      </div>
-
-      <div class="p-5 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Left Column: Controls -->
-        <div class="space-y-4 text-xs">
-          <!-- Background Template Image Upload -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <label class="block font-bold text-slate-700 mb-1">Custom Background Template Image</label>
-            <input type="file" id="template-upload" accept="image/*" onchange="handleTemplateUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-900 file:text-white hover:file:bg-blue-800">
-          </div>
-
-          <!-- Transparency Processing Toggle -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
-            <div>
-              <span class="font-bold text-slate-700 block">Auto Background Removal</span>
-              <span class="text-[10px] text-slate-500">Keys out light/white photo backgrounds</span>
+            <div class="form-group">
+                <label for="logoInput">Upload Babe Ruth League Logo</label>
+                <input type="file" id="logoInput" accept="image/*">
             </div>
-            <input type="checkbox" id="bg-remove-toggle" onchange="updateCalibrator()" checked class="w-4 h-4 text-blue-600 rounded">
-          </div>
 
-          <!-- Photo Controls -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-            <h4 class="font-bold text-blue-900 border-b pb-1">Athlete Photo Placement</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="text-[10px] text-slate-500">Photo X (px)</label><input type="range" id="p-x" min="0" max="300" value="45" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Photo Y (px)</label><input type="range" id="p-y" min="0" max="300" value="110" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Photo Width (px)</label><input type="range" id="p-w" min="50" max="300" value="230" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Photo Height (px)</label><input type="range" id="p-h" min="50" max="350" value="260" oninput="updateCalibrator()" class="w-full"></div>
+            <div class="form-group">
+                <label for="photoInput">Upload ID Photo</label>
+                <input type="file" id="photoInput" accept="image/*">
             </div>
-          </div>
 
-          <!-- Text Positions & Sizing Controls -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-            <h4 class="font-bold text-blue-900 border-b pb-1">Text Positions (Y Coordinates)</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="text-[10px] text-slate-500">Role Y (px)</label><input type="range" id="t-role-y" min="0" max="150" value="70" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Role Font Size (px)</label><input type="range" id="t-role-size" min="10" max="24" value="14" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Name Bar Y (px)</label><input type="range" id="t-name-y" min="200" max="450" value="340" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Charter Bar Y (px)</label><input type="range" id="t-charter-y" min="200" max="480" value="382" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Division Bar Y (px)</label><input type="range" id="t-div-y" min="200" max="500" value="424" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Text Font Size (px)</label><input type="range" id="t-font-size" min="10" max="22" value="14" oninput="updateCalibrator()" class="w-full"></div>
+            <div class="form-group">
+                <label for="nameInput">Full Name</label>
+                <input type="text" id="nameInput" value="JOHN SMITH" placeholder="Enter Full Name">
             </div>
-          </div>
 
-          <!-- QR Code Box Controls -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-            <h4 class="font-bold text-blue-900 border-b pb-1">1:1 Square QR Box Controls</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="text-[10px] text-slate-500">QR Box X (px)</label><input type="range" id="qr-x" min="0" max="250" value="25" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">QR Box Y (px)</label><input type="range" id="qr-y" min="200" max="450" value="375" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-500">Square Size (px)</label><input type="range" id="qr-size" min="40" max="120" value="85" oninput="updateCalibrator()" class="w-full"></div>
+            <div class="form-group">
+                <label for="roleInput">Role</label>
+                <input type="text" id="roleInput" value="COACH / MANAGER" placeholder="e.g. HEAD COACH, PLAYER">
             </div>
-          </div>
+
+            <div class="form-group">
+                <label for="divisionSelect">Age Division Control</label>
+                <select id="divisionSelect">
+                    <option value="Cal Ripken (8U)">Cal Ripken (8U)</option>
+                    <option value="Cal Ripken (10U)">Cal Ripken (10U)</option>
+                    <option value="Cal Ripken (12U)" selected>Cal Ripken (12U)</option>
+                    <option value="Babe Ruth (13-15)">Babe Ruth (13-15)</option>
+                    <option value="Babe Ruth (16-18)">Babe Ruth (16-18)</option>
+                    <option value="Softball 10U">Softball 10U</option>
+                    <option value="Softball 12U">Softball 12U</option>
+                    <option value="Softball 14U">Softball 14U</option>
+                    <option value="Custom">Custom Division...</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="customDivisionGroup" style="display: none;">
+                <label for="customDivisionInput">Custom Age Division</label>
+                <input type="text" id="customDivisionInput" placeholder="Enter Custom Division">
+            </div>
+
+            <div class="form-group">
+                <label for="charterInput">Charter / League Name</label>
+                <input type="text" id="charterInput" value="WESTSIDE BABE RUTH LEAGUE" placeholder="Enter Charter Name">
+            </div>
+
+            <div class="form-group">
+                <label for="idNumInput">ID Number</label>
+                <input type="text" id="idNumInput" value="BRL-2026-9842" placeholder="ID Number">
+            </div>
         </div>
 
-        <!-- Right Column: Live Calibrator Preview -->
-        <div class="flex flex-col items-center justify-center bg-slate-100 p-4 rounded-xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-500 mb-3">Live Calibration Card Preview</span>
-          <div id="calibrator-card-target"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Print Hidden Area -->
-  <div id="print-area"></div>
-
-  <!-- JavaScript Logic -->
-  <script>
-    // System Data State
-    let athletesData = [];
-    let selectedAthleteIds = new Set();
-    let currentTemplateImage = null;
-
-    // Calibration State Settings
-    let config = {
-      photoX: 45, photoY: 110, photoW: 230, photoH: 260,
-      roleY: 70, roleSize: 14,
-      nameY: 340, charterY: 382, divY: 424, fontSize: 14,
-      qrX: 25, qrY: 375, qrSize: 85,
-      autoRemoveBg: true
-    };
-
-    // Sample Mock Data (Loaded if no sheet attached)
-    const mockAthletes = [
-      {
-        id: "ATH-101",
-        name: "ICAYAN, KAIZER EMMANUEL",
-        birthday: "2008-05-14",
-        sport: "BASEBALL",
-        division: "18U DIVISION",
-        team: "MINDANAO EAGLES",
-        city: "CAGAYAN DE ORO",
-        region: "MINDANAO",
-        position: "CATCHER",
-        jersey: "10",
-        season: "2026-2027",
-        photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop",
-        psa: "https://drive.google.com/file/d/sample1",
-        schoolId: "https://drive.google.com/file/d/sample2",
-        medical: "https://drive.google.com/file/d/sample3",
-        waiver: "https://drive.google.com/file/d/sample4",
-        insurance: "https://drive.google.com/file/d/sample5",
-        charter: "MINDANAO CHARTER"
-      },
-      {
-        id: "ATH-102",
-        name: "SANTOS, JUAN DELA CRUZ",
-        birthday: "2009-11-20",
-        sport: "SOFTBALL",
-        division: "15U DIVISION",
-        team: "LUZON STARS",
-        city: "MANILA",
-        region: "LUZON",
-        position: "PITCHER",
-        jersey: "07",
-        season: "2026-2027",
-        photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop",
-        psa: "https://drive.google.com/file/d/sample6",
-        schoolId: "",
-        medical: "https://drive.google.com/file/d/sample7",
-        waiver: "https://drive.google.com/file/d/sample8",
-        insurance: "",
-        charter: "LUZON CHARTER"
-      }
-    ];
-
-    // Initialize System
-    window.addEventListener('DOMContentLoaded', () => {
-      loadSavedConfig();
-      loadSheetData();
-      checkUrlHash();
-    });
-
-    // Check for QR Hash Profile Routing
-    function checkUrlHash() {
-      const hash = window.location.hash;
-      if (hash.startsWith('#profile-')) {
-        const athId = hash.replace('#profile-', '');
-        const ath = athletesData.find(a => a.id === athId);
-        if (ath) openProfileModal(ath);
-      }
-    }
-
-    // Convert standard Google Sheet URL to GViz CSV Endpoint
-    function formatSheetCsvUrl(rawUrl) {
-      if (!rawUrl) return '';
-      if (rawUrl.includes('/gviz/tq?tqx=out:csv')) return rawUrl;
-
-      const matches = rawUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (matches && matches[1]) {
-        const sheetId = matches[1];
-        let gidMatch = rawUrl.match(/gid=([0-9]+)/);
-        let gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
-        return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv${gidParam}`;
-      }
-      return rawUrl;
-    }
-
-    // Load CSV Data from Sheet or Local Storage
-    function loadSheetData() {
-      const savedUrl = localStorage.getItem('br_sheet_url');
-      if (!savedUrl) {
-        athletesData = mockAthletes;
-        renderGrid();
-        populateFilterDropdowns();
-        document.getElementById('sync-banner').classList.remove('hidden');
-        return;
-      }
-
-      const csvUrl = formatSheetCsvUrl(savedUrl);
-
-      Papa.parse(csvUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          if (results.data && results.data.length > 0) {
-            athletesData = parseCsvRows(results.data);
-            document.getElementById('sync-banner').classList.add('hidden');
-          } else {
-            athletesData = mockAthletes;
-            document.getElementById('sync-banner').classList.remove('hidden');
-          }
-          renderGrid();
-          populateFilterDropdowns();
-        },
-        error: (err) => {
-          console.warn("CSV Fetch error, defaulting to mock data:", err);
-          athletesData = mockAthletes;
-          document.getElementById('sync-banner').classList.remove('hidden');
-          renderGrid();
-          populateFilterDropdowns();
-        }
-      });
-    }
-
-    // Case-Insensitive CSV Header Parser for 17 Fields
-    function parseCsvRows(rows) {
-      return rows.map((row, index) => {
-        const getVal = (key) => {
-          const match = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-          return match ? row[match].trim() : '';
-        };
-
-        return {
-          id: getVal('ID') || `ATH-${100 + index}`,
-          name: getVal('Complete Name') || getVal('Name') || 'UNKNOWN ATHLETE',
-          birthday: getVal('Birthday') || '',
-          sport: getVal('Sport') || 'BASEBALL',
-          division: getVal('Division/ Age Group') || getVal('Division') || 'DIVISION',
-          team: getVal('Team/ League') || getVal('Team') || '',
-          city: getVal('City/ Province') || '',
-          region: getVal('Region') || '',
-          position: getVal('Position') || 'PLAYER',
-          jersey: getVal('Jersey Number') || '',
-          season: getVal('Babe Ruth Season (Year)') || '2026-2027',
-          photo: getVal('Athlete Photo') || 'https://via.placeholder.com/300x400?text=No+Photo',
-          psa: getVal('PSA Birth Certificate'),
-          schoolId: getVal('School ID/Certificate of Enrollment'),
-          medical: getVal('Medical Certificate'),
-          waiver: getVal('Parental Consent/Waiver'),
-          insurance: getVal('Insurance'),
-          charter: getVal('Charter') || 'CHARTER'
-        };
-      });
-    }
-
-    // Save Sheet URL
-    function saveSheetUrl() {
-      const url = document.getElementById('sheet-url-input').value.trim();
-      if (url) {
-        localStorage.setItem('br_sheet_url', url);
-        closeModal('sheet-modal');
-        loadSheetData();
-      }
-    }
-
-    // Render Athlete Roster Cards Grid
-    function renderGrid(filteredList = null) {
-      const list = filteredList || athletesData;
-      const grid = document.getElementById('athlete-grid');
-      grid.innerHTML = '';
-
-      document.getElementById('showing-count').innerText = list.length;
-
-      list.forEach(ath => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between";
-        
-        card.innerHTML = `
-          <div>
-            <div class="h-44 bg-slate-100 relative overflow-hidden flex items-center justify-center">
-              <img src="${ath.photo}" alt="${ath.name}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/300x400?text=No+Photo'">
-              <span class="absolute top-2 right-2 bg-blue-900 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full">${ath.division}</span>
-              <span class="absolute bottom-2 left-2 bg-red-600 text-white font-black text-xs px-2 py-0.5 rounded">#${ath.jersey || '00'}</span>
-            </div>
+        <!-- ID Card Preview Section -->
+        <div class="preview-section">
+            <h2 style="font-size: 1.1rem; color: #0b1d3a;">ID Template Preview (Original CR80 Size)</h2>
             
-            <div class="p-4 space-y-2">
-              <h3 class="font-extrabold text-slate-900 text-sm leading-tight">${ath.name}</h3>
-              <div class="text-[11px] text-slate-500 space-y-1">
-                <div><i class="fa-solid fa-flag text-red-600 w-4"></i> ${ath.charter}</div>
-                <div><i class="fa-solid fa-shield text-blue-900 w-4"></i> ${ath.team || 'No Team Assigned'}</div>
-                <div><i class="fa-solid fa-user-tag text-slate-400 w-4"></i> ${ath.position}</div>
-              </div>
+            <div class="id-card-wrapper">
+                <div class="id-card" id="idCard">
+                    <!-- Top Header -->
+                    <div class="card-header">
+                        <div class="logo-container">
+                            <img id="cardLogo" src="https://via.placeholder.com/120x90/ffffff/0b1d3a?text=BRL+LOGO" alt="Babe Ruth League Logo">
+                        </div>
+                        <div class="charter-text card-text" id="displayCharter">WESTSIDE BABE RUTH LEAGUE</div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="photo-box">
+                            <img id="cardPhoto" src="https://via.placeholder.com/120x150/e0e0e0/666666?text=PHOTO" alt="Member Photo">
+                        </div>
+                        <div class="details-box">
+                            <div class="card-text name-text" id="displayName">JOHN SMITH</div>
+                            <div class="card-text role-text" id="displayRole">COACH / MANAGER</div>
+                            <div class="card-text division-text" id="displayDivision">Cal Ripken (12U)</div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer">
+                        <div class="card-text id-number" id="displayIdNum">ID: BRL-2026-9842</div>
+                        <div class="card-text league-title">BABE RUTH LEAGUE</div>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-700">
-              <input type="checkbox" onchange="toggleSelectAthlete('${ath.id}', this.checked)" ${selectedAthleteIds.has(ath.id) ? 'checked' : ''} class="rounded text-blue-600 focus:ring-blue-500">
-              <span>Select ID</span>
-            </label>
-
-            <div class="flex items-center gap-1">
-              <button onclick='openProfileModal(${JSON.stringify(ath).replace(/'/g, "&apos;")})' class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-xs font-bold" title="View Profile">
-                <i class="fa-solid fa-id-card"></i>
-              </button>
-              <button onclick='printSingleId(${JSON.stringify(ath).replace(/'/g, "&apos;")})' class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-bold" title="Print ID Card">
-                <i class="fa-solid fa-print"></i>
-              </button>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    // Populate Filter Dropdowns dynamically
-    function populateFilterDropdowns() {
-      const sports = [...new Set(athletesData.map(a => a.sport).filter(Boolean))];
-      const divisions = [...new Set(athletesData.map(a => a.division).filter(Boolean))];
-      const regions = [...new Set(athletesData.map(a => a.charter || a.region).filter(Boolean))];
-
-      populateSelect('filter-sport', sports);
-      populateSelect('filter-division', divisions);
-      populateSelect('filter-region', regions);
-    }
-
-    function populateSelect(id, items) {
-      const select = document.getElementById(id);
-      const firstOpt = select.options[0];
-      select.innerHTML = '';
-      select.appendChild(firstOpt);
-      items.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item;
-        opt.innerText = item;
-        select.appendChild(opt);
-      });
-    }
-
-    // Filter Logic
-    function applyFilters() {
-      const q = document.getElementById('search-input').value.toLowerCase();
-      const sport = document.getElementById('filter-sport').value;
-      const div = document.getElementById('filter-division').value;
-      const region = document.getElementById('filter-region').value;
-
-      const filtered = athletesData.filter(a => {
-        const matchesSearch = !q || a.name.toLowerCase().includes(q) || a.jersey.includes(q) || a.charter.toLowerCase().includes(q);
-        const matchesSport = !sport || a.sport === sport;
-        const matchesDiv = !div || a.division === div;
-        const matchesRegion = !region || (a.charter === region || a.region === region);
-        return matchesSearch && matchesSport && matchesDiv && matchesRegion;
-      });
-
-      renderGrid(filtered);
-    }
-
-    // Profile & Online Attachment Verifier Modal
-    function openProfileModal(ath) {
-      const modal = document.getElementById('profile-modal');
-      const content = document.getElementById('profile-content');
-      
-      const docs = [
-        { name: "PSA Birth Certificate", link: ath.psa },
-        { name: "School ID / Enrollment Cert", link: ath.schoolId },
-        { name: "Medical Certificate", link: ath.medical },
-        { name: "Parental Consent & Waiver", link: ath.waiver },
-        { name: "Insurance Coverage", link: ath.insurance },
-        { name: "Charter Registration", link: ath.charter }
-      ];
-
-      content.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start border-b border-slate-100 pb-6">
-          <img src="${ath.photo}" class="w-32 h-40 object-contain bg-slate-50 border rounded-xl shadow">
-          <div class="space-y-2 text-center sm:text-left flex-1">
-            <h2 class="text-xl font-black text-slate-900">${ath.name}</h2>
-            <div class="inline-block bg-blue-900 text-white font-bold px-2.5 py-0.5 rounded text-xs">${ath.position} • #${ath.jersey}</div>
-            <div class="grid grid-cols-2 gap-2 text-slate-600 pt-2 text-xs">
-              <div><strong>Charter:</strong> ${ath.charter}</div>
-              <div><strong>Age Division:</strong> ${ath.division}</div>
-              <div><strong>Team / League:</strong> ${ath.team}</div>
-              <div><strong>City / Region:</strong> ${ath.city || ath.region}</div>
-            </div>
-          </div>
-          <div id="modal-qr" class="w-24 h-24 bg-white p-2 border rounded-xl shadow flex items-center justify-center"></div>
+            <button class="print-btn" onclick="window.print()">Print / Export ID</button>
         </div>
+    </div>
 
-        <div class="space-y-3">
-          <h4 class="font-bold text-slate-800 text-xs tracking-wider uppercase"><i class="fa-solid fa-file-circle-check text-emerald-600 mr-1.5"></i> Online Document Verification Checklist</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            ${docs.map(d => `
-              <div class="p-3 bg-slate-50 border rounded-lg flex items-center justify-between">
-                <span class="font-semibold text-slate-700">${d.name}</span>
-                ${d.link ? `
-                  <a href="${d.link}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px] flex items-center gap-1">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Verified
-                  </a>
-                ` : `
-                  <span class="px-2 py-1 bg-slate-200 text-slate-500 rounded font-bold text-[10px]">Pending</span>
-                `}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
+    <script>
+        // Inputs & Preview Elements
+        const logoInput = document.getElementById('logoInput');
+        const photoInput = document.getElementById('photoInput');
+        const nameInput = document.getElementById('nameInput');
+        const roleInput = document.getElementById('roleInput');
+        const divisionSelect = document.getElementById('divisionSelect');
+        const customDivisionGroup = document.getElementById('customDivisionGroup');
+        const customDivisionInput = document.getElementById('customDivisionInput');
+        const charterInput = document.getElementById('charterInput');
+        const idNumInput = document.getElementById('idNumInput');
 
-      modal.classList.remove('hidden');
+        const cardLogo = document.getElementById('cardLogo');
+        const cardPhoto = document.getElementById('cardPhoto');
+        const displayName = document.getElementById('displayName');
+        const displayRole = document.getElementById('displayRole');
+        const displayDivision = document.getElementById('displayDivision');
+        const displayCharter = document.getElementById('displayCharter');
+        const displayIdNum = document.getElementById('displayIdNum');
 
-      // Generate Profile QR Code
-      setTimeout(() => {
-        const qrContainer = document.getElementById('modal-qr');
-        qrContainer.innerHTML = '';
-        new QRCode(qrContainer, {
-          text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
-          width: 80,
-          height: 80
+        // Logo Image Handler
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    cardLogo.src = evt.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
         });
-      }, 50);
-    }
 
-    // Modal Toggles
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        // Photo Image Handler
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    cardPhoto.src = evt.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
-    // Selection Logic for Batch Printing
-    function toggleSelectAthlete(id, checked) {
-      if (checked) selectedAthleteIds.add(id);
-      else selectedAthleteIds.delete(id);
-      document.getElementById('print-count').innerText = selectedAthleteIds.size;
-    }
+        // Text Inputs Handlers
+        nameInput.addEventListener('input', () => {
+            displayName.textContent = nameInput.value.toUpperCase() || 'NAME';
+        });
 
-    function toggleSelectAll(checkbox) {
-      if (checkbox.checked) {
-        athletesData.forEach(a => selectedAthleteIds.add(a.id));
-      } else {
-        selectedAthleteIds.clear();
-      }
-      document.getElementById('print-count').innerText = selectedAthleteIds.size;
-      renderGrid();
-    }
+        roleInput.addEventListener('input', () => {
+            displayRole.textContent = roleInput.value.toUpperCase() || 'ROLE';
+        });
 
-    // Custom Template Image Upload Handling
-    function handleTemplateUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentTemplateImage = e.target.result;
-          updateCalibrator();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
+        charterInput.addEventListener('input', () => {
+            displayCharter.textContent = charterInput.value.toUpperCase() || 'CHARTER';
+        });
 
-    // Config Persistence
-    function loadSavedConfig() {
-      const saved = localStorage.getItem('br_id_config');
-      if (saved) config = { ...config, ...JSON.parse(saved) };
-      
-      // Bind to inputs
-      document.getElementById('p-x').value = config.photoX;
-      document.getElementById('p-y').value = config.photoY;
-      document.getElementById('p-w').value = config.photoW;
-      document.getElementById('p-h').value = config.photoH;
-      document.getElementById('t-role-y').value = config.roleY;
-      document.getElementById('t-role-size').value = config.roleSize;
-      document.getElementById('t-name-y').value = config.nameY;
-      document.getElementById('t-charter-y').value = config.charterY;
-      document.getElementById('t-div-y').value = config.divY;
-      document.getElementById('t-font-size').value = config.fontSize;
-      document.getElementById('qr-x').value = config.qrX;
-      document.getElementById('qr-y').value = config.qrY;
-      document.getElementById('qr-size').value = config.qrSize;
-      document.getElementById('bg-remove-toggle').checked = config.autoRemoveBg;
-    }
+        idNumInput.addEventListener('input', () => {
+            displayIdNum.textContent = 'ID: ' + (idNumInput.value.toUpperCase() || '');
+        });
 
-    function updateCalibrator() {
-      config.photoX = parseInt(document.getElementById('p-x').value);
-      config.photoY = parseInt(document.getElementById('p-y').value);
-      config.photoW = parseInt(document.getElementById('p-w').value);
-      config.photoH = parseInt(document.getElementById('p-h').value);
-      config.roleY = parseInt(document.getElementById('t-role-y').value);
-      config.roleSize = parseInt(document.getElementById('t-role-size').value);
-      config.nameY = parseInt(document.getElementById('t-name-y').value);
-      config.charterY = parseInt(document.getElementById('t-charter-y').value);
-      config.divY = parseInt(document.getElementById('t-div-y').value);
-      config.fontSize = parseInt(document.getElementById('t-font-size').value);
-      config.qrX = parseInt(document.getElementById('qr-x').value);
-      config.qrY = parseInt(document.getElementById('qr-y').value);
-      config.qrSize = parseInt(document.getElementById('qr-size').value);
-      config.autoRemoveBg = document.getElementById('bg-remove-toggle').checked;
+        // Division Control Handler
+        divisionSelect.addEventListener('change', () => {
+            if (divisionSelect.value === 'Custom') {
+                customDivisionGroup.style.display = 'flex';
+                displayDivision.textContent = customDivisionInput.value || 'CUSTOM DIVISION';
+            } else {
+                customDivisionGroup.style.display = 'none';
+                displayDivision.textContent = divisionSelect.value;
+            }
+        });
 
-      localStorage.setItem('br_id_config', JSON.stringify(config));
-
-      const target = document.getElementById('calibrator-card-target');
-      const sample = athletesData[0] || mockAthletes[0];
-      target.innerHTML = renderSingleCardHTML(sample);
-      renderCardQr(sample, `calib-qr-${sample.id}`);
-    }
-
-    // HTML Rendering Engine for Custom ID Card Element Placement
-    function renderSingleCardHTML(ath) {
-      const templateBgStyle = currentTemplateImage 
-        ? `background-image: url('${currentTemplateImage}');` 
-        : ``;
-
-      return `
-        <div class="id-card-container ${currentTemplateImage ? '' : 'default-id-bg'}" style="${templateBgStyle}">
-          ${!currentTemplateImage ? `<div class="p-4 bg-blue-900 text-white font-black text-center text-xs">BABE RUTH LEAGUE PHILIPPINES 2026-2027</div>` : ''}
-          
-          <!-- Athlete Photo (Layered behind text: z-index 2) -->
-          <img src="${ath.photo}" class="id-elem-photo" style="
-            left: ${config.photoX}px;
-            top: ${config.photoY}px;
-            width: ${config.photoW}px;
-            height: ${config.photoH}px;
-          " onerror="this.src='https://via.placeholder.com/300x400?text=Athlete'">
-
-          <!-- Role Overlay Top Right -->
-          <div class="id-elem-role" style="
-            right: 25px;
-            top: ${config.roleY}px;
-            font-size: ${config.roleSize}px;
-          ">${ath.position || 'PLAYER'}</div>
-
-          <!-- Pure Text Overlays directly over Template Blue Bars (No Box BG) -->
-          <div class="id-elem-text text-center w-full px-4" style="
-            left: 0;
-            top: ${config.nameY}px;
-            font-size: ${config.fontSize}px;
-          ">${ath.name}</div>
-
-          <div class="id-elem-text text-center w-full px-4" style="
-            left: 0;
-            top: ${config.charterY}px;
-            font-size: ${config.fontSize}px;
-          ">${ath.charter}</div>
-
-          <div class="id-elem-text text-center w-full px-4" style="
-            left: 0;
-            top: ${config.divY}px;
-            font-size: ${config.fontSize}px;
-          ">${ath.division}</div>
-
-          <!-- 1:1 Square QR Box Lower Left -->
-          <div id="calib-qr-${ath.id}" class="id-elem-qr-box" style="
-            left: ${config.qrX}px;
-            top: ${config.qrY}px;
-            width: ${config.qrSize}px;
-            height: ${config.qrSize}px;
-          "></div>
-        </div>
-      `;
-    }
-
-    // Render Square QR Code
-    function renderCardQr(ath, containerId) {
-      setTimeout(() => {
-        const container = document.getElementById(containerId);
-        if (container) {
-          container.innerHTML = '';
-          new QRCode(container, {
-            text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
-            width: config.qrSize - 8,
-            height: config.qrSize - 8
-          });
-        }
-      }, 30);
-    }
-
-    // Single Card Print Trigger
-    function printSingleId(ath) {
-      const area = document.getElementById('print-area');
-      area.innerHTML = renderSingleCardHTML(ath);
-      renderCardQr(ath, `calib-qr-${ath.id}`);
-      setTimeout(() => window.print(), 300);
-    }
-
-    // Batch Card Print Trigger
-    function triggerBatchPrint() {
-      if (selectedAthleteIds.size === 0) {
-        alert("Please select at least one athlete for batch printing.");
-        return;
-      }
-      const area = document.getElementById('print-area');
-      area.innerHTML = '';
-
-      const selectedList = athletesData.filter(a => selectedAthleteIds.has(a.id));
-      selectedList.forEach(ath => {
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = renderSingleCardHTML(ath);
-        area.appendChild(wrapper.firstElementChild);
-      });
-
-      selectedList.forEach(ath => renderCardQr(ath, `calib-qr-${ath.id}`));
-      setTimeout(() => window.print(), 500);
-    }
-  </script>
+        customDivisionInput.addEventListener('input', () => {
+            if (divisionSelect.value === 'Custom') {
+                displayDivision.textContent = customDivisionInput.value.toUpperCase() || 'CUSTOM DIVISION';
+            }
+        });
+    </script>
 </body>
 </html>
