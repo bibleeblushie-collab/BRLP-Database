@@ -83,23 +83,44 @@
       pointer-events: none;
     }
 
-    /* Strict Pure White Poppins Bold Text - No Background Highlight / No Highlight Overlay */
-    .id-card-text {
+   /* Individual Text Box with Linear Gradient 180° (#1d74b7 -> #102f4b) */
+    .id-single-text-box {
       position: absolute;
       z-index: 5;
+      background: linear-gradient(180deg, #1d74b7 0%, #102f4b 100%) !important;
+      border-radius: 6px;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .id-single-text-box .id-box-text-content {
       font-family: 'Poppins', sans-serif !important;
-      font-weight: 700 !important;
+      font-weight: 800 !important;
       color: #ffffff !important;
-      background: transparent !important;
-      background-color: transparent !important;
       text-transform: uppercase;
+      line-height: 1.1;
+      width: 100%;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1.15;
-      text-shadow: none !important;
-      box-shadow: none !important;
-      border: none !important;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .id-single-text-box.charter-box .id-box-text-content {
+      color: #e0f2fe !important;
+      font-weight: 700 !important;
+    }
+
+    .id-single-text-box.division-box .id-box-text-content {
+      color: #fef08a !important;
+      font-weight: 700 !important;
     }
 
     /* 1:1 Square QR Box Container */
