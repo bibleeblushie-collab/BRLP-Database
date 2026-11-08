@@ -25,7 +25,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Poppins (Bold) -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
       color: #f3f4f6;
     }
 
-    /* Standard A4 Full Physical Dimensions (210mm x 297mm / 794px x 1123px at 96 DPI) */
+    /* Standard A4 Physical Dimensions (210mm x 297mm / 794px x 1123px at 96 DPI) */
     .id-card-container {
       width: 794px;
       height: 1123px;
@@ -52,7 +52,6 @@
       font-family: 'Poppins', sans-serif !important;
     }
 
-    /* Full-span A4 Design Layer (No cropping/scaling distortion) */
     .id-design-layer {
       width: 100%;
       height: 100%;
@@ -60,7 +59,6 @@
       inset: 0;
     }
 
-    /* Calibrator Preview Scaled Box */
     .calibrator-preview-wrapper {
       width: 357px;
       height: 505px;
@@ -78,12 +76,10 @@
       left: 0;
     }
 
-    /* Default Background Gradient */
     .default-id-bg {
       background: linear-gradient(135deg, #0b1d3a 0%, #1e3a8a 50%, #09152b 100%);
     }
 
-    /* Element Positioning Layers */
     .id-elem-photo {
       position: absolute;
       z-index: 2;
@@ -91,7 +87,6 @@
       pointer-events: none;
     }
 
-    /* Pure White Poppins Bold Text */
     .id-card-text {
       position: absolute;
       z-index: 5;
@@ -106,7 +101,6 @@
       line-height: 1.15;
     }
 
-    /* 1:1 Square QR Box Container */
     .id-elem-qr-box {
       position: absolute;
       z-index: 6;
@@ -131,7 +125,6 @@
     .glow-blue { box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.5); }
     .glow-red { box-shadow: 0 0 20px -3px rgba(220, 38, 38, 0.5); }
 
-    /* Exact A4 Print Configuration */
     @media print {
       body * { visibility: hidden !important; }
       #print-area, #print-area * { visibility: visible !important; }
@@ -282,9 +275,14 @@
           <label class="block font-semibold text-slate-300 mb-1.5">Google Sheet Share / CSV Link</label>
           <input type="text" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 focus:outline-none">
         </div>
+        <div>
+          <label class="block font-semibold text-blue-300 mb-1.5">Hosted Website Base URL (For QR Code Scanning)</label>
+          <input type="text" id="base-url-input" placeholder="https://yourdomain.com/app" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 focus:outline-none">
+          <span class="text-[10px] text-slate-400 mt-1 block">Set your public website address so scanned QR codes open on phone cameras.</span>
+        </div>
         <div class="flex justify-end gap-2.5 pt-2">
           <button onclick="closeModal('sheet-modal')" class="px-4 py-2.5 bg-slate-800 text-slate-300 font-semibold rounded-xl hover:bg-slate-700">Cancel</button>
-          <button onclick="saveSheetUrl()" class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg glow-red">Sync Spreadsheet</button>
+          <button onclick="saveSheetUrl()" class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg glow-red">Save & Sync</button>
         </div>
       </div>
     </div>
@@ -303,7 +301,6 @@
     </div>
   </div>
 
-  <!-- Calibrator Modal -->
   <div id="calibrator-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 rounded-2xl max-w-5xl w-full shadow-2xl border border-blue-900/60 overflow-hidden max-h-[95vh] flex flex-col">
       <div class="bg-gradient-to-r from-blue-950 to-slate-900 px-5 py-4 text-white flex justify-between items-center border-b border-blue-900/40">
@@ -403,7 +400,6 @@
     let customLogoImage = "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Babe_Ruth_League_logo.svg/1200px-Babe_Ruth_League_logo.svg.png";
     let processedPhotoCache = new Map();
 
-    // Default Full A4 Dimensions Configuration
     let config = {
       photoX: 157, photoY: 220, photoW: 480, photoH: 520,
       roleX: 0, roleY: 150, roleSize: 28,
@@ -464,6 +460,18 @@
       checkUrlHash();
     });
 
+    function getProfileUrl(athleteId) {
+      const customBaseUrl = localStorage.getItem('br_base_url');
+      if (customBaseUrl && customBaseUrl.trim() !== '') {
+        const cleanBase = customBaseUrl.trim().replace(/\/+$/, '');
+        return `${cleanBase}#profile-${athleteId}`;
+      }
+      if (window.location.protocol.startsWith('http')) {
+        return `${window.location.origin}${window.location.pathname}#profile-${athleteId}`;
+      }
+      return `https://baberuthleague.ph/app#profile-${athleteId}`;
+    }
+
     function checkUrlHash() {
       const hash = window.location.hash;
       if (hash.startsWith('#profile-')) {
@@ -488,6 +496,9 @@
 
     function loadSheetData() {
       const savedUrl = localStorage.getItem('br_sheet_url');
+      const savedBaseUrl = localStorage.getItem('br_base_url');
+      if (savedBaseUrl) document.getElementById('base-url-input').value = savedBaseUrl;
+
       if (!savedUrl) {
         athletesData = mockAthletes;
         renderGrid();
@@ -550,11 +561,14 @@
 
     function saveSheetUrl() {
       const url = document.getElementById('sheet-url-input').value.trim();
-      if (url) {
-        localStorage.setItem('br_sheet_url', url);
-        closeModal('sheet-modal');
-        loadSheetData();
-      }
+      const baseUrl = document.getElementById('base-url-input').value.trim();
+      
+      if (url) localStorage.setItem('br_sheet_url', url);
+      if (baseUrl) localStorage.setItem('br_base_url', baseUrl);
+
+      closeModal('sheet-modal');
+      loadSheetData();
+      updateCalibrator();
     }
 
     function renderGrid(filteredList = null) {
@@ -699,9 +713,10 @@
         const qrContainer = document.getElementById('modal-qr');
         qrContainer.innerHTML = '';
         new QRCode(qrContainer, {
-          text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
+          text: getProfileUrl(ath.id),
           width: 80,
-          height: 80
+          height: 80,
+          correctLevel: QRCode.CorrectLevel.H
         });
       }, 50);
     }
@@ -819,7 +834,6 @@
       applyPhotoTransparency(`calib-photo-${sample.id}`, sample.photo);
     }
 
-    // HTML Card Engine - Full A4 Canvas Architecture
     function renderSingleCardHTML(ath, prefix = 'id') {
       const templateBgStyle = currentTemplateImage 
         ? `background-image: url('${currentTemplateImage}');` 
@@ -920,13 +934,13 @@
       };
     }
 
-    // Direct Unique Container QR Generation
     function renderCardQr(ath, containerId) {
       const container = document.getElementById(containerId);
       if (container) {
         container.innerHTML = '';
+        const targetUrl = getProfileUrl(ath.id);
         new QRCode(container, {
-          text: `${window.location.origin}${window.location.pathname}#profile-${ath.id}`,
+          text: targetUrl,
           width: config.qrSize - 12,
           height: config.qrSize - 12,
           correctLevel: QRCode.CorrectLevel.H
