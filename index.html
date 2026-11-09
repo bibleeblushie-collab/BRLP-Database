@@ -570,28 +570,56 @@
 
     function parseCsvRows(rows) {
       return rows.map((row, index) => {
-        const getVal = (key) => {
-          const match = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-          return match ? row[match].trim() : '';
+        // Robust header search that checks exact, lowercase, and keyword inclusions
+        const getVal = (...keys) => {
+          const rowKeys = Object.keys(row);
+          for (const key of keys) {
+            const cleanKey = key.trim().toLowerCase();
+            const match = rowKeys.find(k => {
+              const cleanedK = k.trim().toLowerCase();
+              return cleanedK === cleanKey || cleanedK.startsWith(cleanKey) || cleanedK.includes(cleanKey);
+            });
+            if (match && row[match] && row[match].toString().trim()) {
+              return row[match].toString().trim();
+            }
+          }
+          return '';
         };
 
+        // Convert any Google Drive view/open link to a direct displayable image
+        const formatImageUrl = (url) => {
+          if (!url) return 'https://via.placeholder.com/300x400?text=No+Photo';
+          const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            return `https://lh3.googleusercontent.com/d/${match[1]}`;
+          }
+          return url;
+        };
+
+        const name = getVal('Complete Name', 'Name') || 'UNKNOWN ATHLETE';
+        const jersey = getVal('Jersey Number', 'Jersey') || '';
+        
+        // Generate a clean, stable ID for QR and profile redirection (e.g. ATH-1-kaizer-icayan)
+        const nameSlug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 15);
+        const generatedId = `ATH-${index + 1}-${nameSlug || 'player'}`;
+
         return {
-          id: getVal('ID') || `ATH-${100 + index}`,
-          name: getVal('Complete Name') || getVal('Name') || 'UNKNOWN ATHLETE',
+          id: getVal('ID') || generatedId,
+          name: name,
           birthday: getVal('Birthday') || '',
           sport: getVal('Sport') || 'BASEBALL',
-          division: getVal('Division/ Age Group') || getVal('Division') || 'CAL RIPKEN (12U)',
-          team: getVal('Team/ League') || getVal('Team') || '',
-          city: getVal('City/ Province') || '',
+          division: getVal('Division/ Age', 'Division') || 'CAL RIPKEN (12U)',
+          team: getVal('Team/ League', 'Team') || '',
+          city: getVal('City/ Province', 'City') || '',
           region: getVal('Region') || '',
-          position: getVal('Position') || getVal('Role') || 'PLAYER',
-          jersey: getVal('Jersey Number') || '',
-          season: getVal('Babe Ruth Season (Year)') || '2026-2027',
-          photo: getVal('Athlete Photo') || 'https://via.placeholder.com/300x400?text=No+Photo',
-          psa: getVal('PSA Birth Certificate'),
-          schoolId: getVal('School ID/Certificate of Enrollment'),
-          medical: getVal('Medical Certificate'),
-          waiver: getVal('Parental Consent/Waiver'),
+          position: getVal('Role', 'Position') || 'PLAYER',
+          jersey: jersey,
+          season: getVal('Babe Ruth Season', 'Season') || '2026-2027',
+          photo: formatImageUrl(getVal('Athlete Photo', 'Photo')),
+          psa: getVal('PSA Birth Certificate', 'PSA'),
+          schoolId: getVal('School ID', 'Certificate of Enrollment'),
+          medical: getVal('Medical Certificate', 'Medical'),
+          waiver: getVal('Parental Consent', 'Waiver'),
           insurance: getVal('Insurance'),
           charter: getVal('Charter') || 'BABE RUTH CHARTER'
         };
