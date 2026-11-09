@@ -88,8 +88,8 @@
       position: absolute;
       z-index: 5;
       background: linear-gradient(180deg, #1d74b7 0%, #102f4b 100%) !important;
-      border-radius: 6px;
-      padding: 3px 8px;
+      border-radius: 14px;
+      padding: 3px 12px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -104,23 +104,21 @@
       font-family: 'Poppins', sans-serif !important;
       font-weight: 800 !important;
       color: #ffffff !important;
+      text-align: center !important;
       text-transform: uppercase;
       line-height: 1.1;
       width: 100%;
       white-space: nowrap;
       overflow: hidden;
       display: inline-block;
-      text-align: center;
+      text-align: center !important;
     }
 
-    .id-single-text-box.charter-box .id-box-text-content {
-      color: #e0f2fe !important;
-      font-weight: 700 !important;
-    }
-
+    .id-single-text-box.charter-box .id-box-text-content,
     .id-single-text-box.division-box .id-box-text-content {
-      color: #fef08a !important;
+      color: #ffffff !important;
       font-weight: 700 !important;
+      text-align: center !important;
     }
 
     /* 1:1 Square QR Box Container */
@@ -399,13 +397,11 @@
             <div class="grid grid-cols-3 gap-2">
               <div><label class="text-[10px] text-slate-400">Boxes Width (px)</label><input type="range" id="b-w" min="150" max="320" value="280" oninput="updateCalibrator()" class="w-full"></div>
               <div><label class="text-[10px] text-slate-400">Boxes Height (px)</label><input type="range" id="b-h" min="20" max="60" value="34" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Boxes X Position</label><input type="range" id="b-x" min="0" max="100" value="22" oninput="updateCalibrator()" class="w-full"></div>
+              <div><label class="text-[10px] text-slate-400">All Text Boxes Left / Right</label><input type="range" id="b-x" min="-100" max="400" value="22" oninput="updateCalibrator()" class="w-full"></div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-900">
-              <div><label class="text-[10px] text-slate-400">Name Box Y</label><input type="range" id="b-name-y" min="200" max="460" value="350" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Charter Box Y</label><input type="range" id="b-charter-y" min="200" max="480" value="390" oninput="updateCalibrator()" class="w-full"></div>
-              <div><label class="text-[10px] text-slate-400">Division Box Y</label><input type="range" id="b-div-y" min="200" max="500" value="430" oninput="updateCalibrator()" class="w-full"></div>
+            <div class="grid grid-cols-1 gap-2 pt-1 border-t border-slate-900">
+              <div><label class="text-[10px] text-slate-400">All Text Boxes Up / Down</label><input type="range" id="b-y-offset" min="-200" max="200" value="0" oninput="updateCalibrator()" class="w-full"></div>
             </div>
 
             <div class="grid grid-cols-3 gap-2 pt-1">
@@ -451,7 +447,7 @@
       photoX: 45, photoY: 110, photoW: 230, photoH: 260,
       roleX: 0, roleY: 70, roleSize: 13,
       boxW: 280, boxH: 34, boxX: 22,
-      nameBoxY: 350, charterBoxY: 390, divBoxY: 430,
+      nameBoxY: 350, charterBoxY: 390, divBoxY: 430, boxYOffset: 0,
       fontSize: 14, charterSize: 12, divSize: 12,
       qrX: 222, qrY: 415, qrSize: 80,
       autoRemoveBg: true, bgThreshold: 225
@@ -766,6 +762,8 @@
             text: getProfileUrl(ath.id),
             width: 80,
             height: 80,
+            colorDark: '#1d4ed8',
+            colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.H
           });
         }
@@ -820,9 +818,7 @@
       document.getElementById('b-h').value = config.boxH || 34;
       document.getElementById('b-x').value = config.boxX !== undefined ? config.boxX : 22;
       
-      document.getElementById('b-name-y').value = config.nameBoxY || 350;
-      document.getElementById('b-charter-y').value = config.charterBoxY || 390;
-      document.getElementById('b-div-y').value = config.divBoxY || 430;
+      document.getElementById('b-y-offset').value = config.boxYOffset || 0;
 
       document.getElementById('t-font-size').value = config.fontSize || 14;
       document.getElementById('t-charter-size').value = config.charterSize || 12;
@@ -849,9 +845,7 @@
       config.boxH = parseInt(document.getElementById('b-h').value);
       config.boxX = parseInt(document.getElementById('b-x').value);
 
-      config.nameBoxY = parseInt(document.getElementById('b-name-y').value);
-      config.charterBoxY = parseInt(document.getElementById('b-charter-y').value);
-      config.divBoxY = parseInt(document.getElementById('b-div-y').value);
+      config.boxYOffset = parseInt(document.getElementById('b-y-offset').value);
 
       config.fontSize = parseInt(document.getElementById('t-font-size').value);
       config.charterSize = parseInt(document.getElementById('t-charter-size').value);
@@ -879,11 +873,14 @@
         document.querySelectorAll('.id-box-text-content').forEach(el => {
           const parent = el.parentElement;
           if (!parent) return;
-          let maxFontSize = parseFloat(el.getAttribute('data-max-size') || '14');
-          let currentSize = maxFontSize;
+          const baseFontSize = parseFloat(el.getAttribute('data-max-size') || '14');
+          // Text grows/shrinks with the box height and width (34px × 280px is the default size).
+          const heightScale = Math.max(0.55, Math.min(1.8, parent.clientHeight / 34));
+          const widthScale = Math.max(0.65, Math.min(1.35, parent.clientWidth / 280));
+          let currentSize = baseFontSize * Math.min(heightScale, widthScale);
           el.style.fontSize = currentSize + 'px';
 
-          // Reduce font size until text fits within fixed box boundaries
+          // If the actual text is still too long/tall, reduce it further to fit the box.
           while (currentSize > 6 && (el.scrollWidth > parent.clientWidth - 12 || el.scrollHeight > parent.clientHeight - 4)) {
             currentSize -= 0.5;
             el.style.fontSize = currentSize + 'px';
@@ -919,16 +916,25 @@
           " onerror="this.src='https://via.placeholder.com/300x400?text=Athlete'">
 
           <!-- Single Clean Role Layer -->
-          <div class="id-card-text text-center w-full px-2" style="
+          <div class="id-card-text text-center px-2" style="
+            position: absolute;
+            z-index: 5;
             left: ${config.roleX}px;
             top: ${config.roleY}px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #ffffff;
             font-size: ${config.roleSize}px;
-          ">${ath.position || 'PLAYER'}</div>
+            line-height: 1.15;
+            pointer-events: none;
+          ">${ath.position || ath.role || 'PLAYER'}</div>
 
           <!-- 1. NAME TEXT BOX (Exact Fixed Size) -->
           <div class="id-single-text-box name-box" style="
             left: ${config.boxX}px;
-            top: ${config.nameBoxY}px;
+            top: ${config.nameBoxY + (config.boxYOffset || 0)}px;
             width: ${config.boxW}px;
             height: ${config.boxH}px;
           ">
@@ -938,7 +944,7 @@
           <!-- 2. CHARTER TEXT BOX (Exact Fixed Size) -->
           <div class="id-single-text-box charter-box" style="
             left: ${config.boxX}px;
-            top: ${config.charterBoxY}px;
+            top: ${config.charterBoxY + (config.boxYOffset || 0)}px;
             width: ${config.boxW}px;
             height: ${config.boxH}px;
           ">
@@ -948,7 +954,7 @@
           <!-- 3. DIVISION TEXT BOX (Exact Fixed Size) -->
           <div class="id-single-text-box division-box" style="
             left: ${config.boxX}px;
-            top: ${config.divBoxY}px;
+            top: ${config.divBoxY + (config.boxYOffset || 0)}px;
             width: ${config.boxW}px;
             height: ${config.boxH}px;
           ">
@@ -968,41 +974,100 @@
     }
 
     function applyPhotoTransparency(elementId, imgUrl) {
-      if (!config.autoRemoveBg) return;
+      if (!config.autoRemoveBg || !imgUrl) return;
+
+      // Reuse processed results, but always update the requested image element.
+      const cached = processedPhotoCache.get(imgUrl);
+      if (cached) {
+        const cachedTarget = document.getElementById(elementId);
+        if (cachedTarget) cachedTarget.src = cached;
+        return;
+      }
 
       const img = new Image();
-      img.crossOrigin = "Anonymous";
+      img.crossOrigin = "anonymous";
       img.onload = function () {
         const canvas = document.createElement('canvas');
         canvas.width = img.naturalWidth || img.width;
         canvas.height = img.naturalHeight || img.height;
-
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(img, 0, 0);
 
         try {
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imgData.data;
-          const threshold = config.bgThreshold;
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          const w = canvas.width, h = canvas.height;
+          const total = w * h;
 
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            if (r >= threshold && g >= threshold && b >= threshold) {
-              data[i + 3] = 0;
+          // Estimate the background color from small patches in all four corners.
+          const samples = [];
+          const patch = Math.max(2, Math.min(12, Math.floor(Math.min(w, h) * 0.025)));
+          for (const [ox, oy] of [[0,0], [w-patch,0], [0,h-patch], [w-patch,h-patch]]) {
+            for (let y = oy; y < oy + patch; y += 2) {
+              for (let x = ox; x < ox + patch; x += 2) {
+                const i = (y * w + x) * 4;
+                samples.push([data[i], data[i+1], data[i+2]]);
+              }
             }
           }
+          const average = samples.reduce((a, c) => [a[0]+c[0], a[1]+c[1], a[2]+c[2]], [0,0,0])
+            .map(v => v / Math.max(1, samples.length));
 
-          ctx.putImageData(imgData, 0, 0);
-          const processedUrl = canvas.toDataURL();
+          // Higher slider values allow a wider range of background shades to be removed.
+          const tolerance = Math.max(24, Math.min(115, (config.bgThreshold || 225) * 0.42));
+          const softEdge = tolerance * 1.45;
+          const visited = new Uint8Array(total);
+          const queue = new Int32Array(total);
+          let head = 0, tail = 0;
+
+          function colorDistance(pixelIndex) {
+            const i = pixelIndex * 4;
+            const dr = data[i] - average[0];
+            const dg = data[i+1] - average[1];
+            const db = data[i+2] - average[2];
+            return Math.sqrt(dr*dr + dg*dg + db*db);
+          }
+          function addEdgePixel(x, y) {
+            const p = y * w + x;
+            if (visited[p]) return;
+            visited[p] = 1;
+            if (colorDistance(p) <= softEdge) queue[tail++] = p;
+          }
+
+          // Start from the image boundary and only remove connected background,
+          // preserving similarly colored details enclosed by the subject.
+          for (let x = 0; x < w; x++) { addEdgePixel(x, 0); if (h > 1) addEdgePixel(x, h-1); }
+          for (let y = 1; y < h-1; y++) { addEdgePixel(0, y); if (w > 1) addEdgePixel(w-1, y); }
+
+          while (head < tail) {
+            const p = queue[head++];
+            const x = p % w, y = (p / w) | 0;
+            if (x > 0) addEdgePixel(x-1, y);
+            if (x+1 < w) addEdgePixel(x+1, y);
+            if (y > 0) addEdgePixel(x, y-1);
+            if (y+1 < h) addEdgePixel(x, y+1);
+          }
+
+          // Feather the boundary to reduce harsh halos while making the connected
+          // background fully transparent.
+          for (let p = 0; p < total; p++) {
+            if (!visited[p]) continue;
+            const i = p * 4;
+            const d = colorDistance(p);
+            data[i+3] = d <= tolerance ? 0 : Math.round(255 * (d - tolerance) / Math.max(1, softEdge - tolerance));
+          }
+
+          ctx.putImageData(imageData, 0, 0);
+          const processedUrl = canvas.toDataURL('image/png');
           processedPhotoCache.set(imgUrl, processedUrl);
-
           const targetImg = document.getElementById(elementId);
           if (targetImg) targetImg.src = processedUrl;
         } catch (e) {
-          console.warn("Cross-Origin Canvas Error:", e);
+          console.warn("Background removal could not process this image (often due to cross-origin image restrictions):", e);
         }
+      };
+      img.onerror = function () {
+        console.warn("Could not load photo for background removal:", imgUrl);
       };
       img.src = imgUrl;
     }
@@ -1016,6 +1081,8 @@
             text: getProfileUrl(ath.id),
             width: Math.max(30, config.qrSize - 8),
             height: Math.max(30, config.qrSize - 8),
+            colorDark: '#1d4ed8',
+            colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.H
           });
         }
