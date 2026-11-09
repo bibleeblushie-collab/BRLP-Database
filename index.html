@@ -18,7 +18,7 @@
         }
       }
     }
-  </>
+  </script>
   <!-- PapaParse for CSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <!-- QRCode.js -->
@@ -345,16 +345,6 @@
       <div class="p-5 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Controls Column -->
         <div class="lg:col-span-7 space-y-4 text-xs">
-let config = {
-  photoX: 45, photoY: 110, photoW: 230, photoH: 260,
-  photoScale: 100, // <--- Add this line
-  roleX: 0, roleY: 70, roleSize: 13,
-  boxW: 280, boxH: 34, boxX: 22,
-  nameBoxY: 350, charterBoxY: 390, divBoxY: 430, boxYOffset: 0,
-  fontSize: 14, charterSize: 12, divSize: 12,
-  qrX: 222, qrY: 415, qrSize: 80,
-  autoRemoveBg: false, bgThreshold: 225 // set to false since transparent PNGs are uploaded directly
-};
           
           <!-- Template Graphic Upload -->
           <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
@@ -380,41 +370,15 @@ let config = {
           </div>
 
           <!-- Photo Position Controls -->
-          <!-- Photo Position & Enlarge Controls -->
-<div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5">
-  <div class="flex items-center justify-between border-b border-slate-800 pb-1">
-    <h4 class="font-bold text-blue-400">Athlete Photo Position & Enlarge</h4>
-    <span id="photo-scale-val" class="text-[11px] font-bold text-emerald-400">100%</span>
-  </div>
-  
-  <!-- One-Click Zoom / Scale Slider -->
-  <div>
-    <label class="text-[10px] text-slate-400 flex justify-between">
-      <span>Photo Enlarge / Zoom Scale</span>
-      <span class="text-slate-500 font-mono text-[9px]">50% - 250%</span>
-    </label>
-    <input type="range" id="p-scale" min="50" max="250" value="100" oninput="updateCalibrator()" class="w-full accent-emerald-500">
-  </div>
-
-  <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-900">
-    <div>
-      <label class="text-[10px] text-slate-400">Photo X (Left/Right)</label>
-      <input type="range" id="p-x" min="-150" max="350" value="45" oninput="updateCalibrator()" class="w-full">
-    </div>
-    <div>
-      <label class="text-[10px] text-slate-400">Photo Y (Up/Down)</label>
-      <input type="range" id="p-y" min="-100" max="400" value="110" oninput="updateCalibrator()" class="w-full">
-    </div>
-    <div>
-      <label class="text-[10px] text-slate-400">Box Width (px)</label>
-      <input type="range" id="p-w" min="50" max="600" value="230" oninput="updateCalibrator()" class="w-full">
-    </div>
-    <div>
-      <label class="text-[10px] text-slate-400">Box Height (px)</label>
-      <input type="range" id="p-h" min="50" max="700" value="260" oninput="updateCalibrator()" class="w-full">
-    </div>
-  </div>
-</div>
+          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-1">Athlete Photo Position & Scaling</h4>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div><label class="text-[10px] text-slate-400">Photo X (Left/Right)</label><input type="range" id="p-x" min="0" max="300" value="45" oninput="updateCalibrator()" class="w-full"></div>
+              <div><label class="text-[10px] text-slate-400">Photo Y (Top/Bottom)</label><input type="range" id="p-y" min="0" max="300" value="110" oninput="updateCalibrator()" class="w-full"></div>
+              <div><label class="text-[10px] text-slate-400">Photo Width (px)</label><input type="range" id="p-w" min="50" max="300" value="230" oninput="updateCalibrator()" class="w-full"></div>
+              <div><label class="text-[10px] text-slate-400">Photo Height (px)</label><input type="range" id="p-h" min="50" max="350" value="260" oninput="updateCalibrator()" class="w-full"></div>
+            </div>
+          </div>
 
           <!-- Role Controls -->
           <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -536,13 +500,6 @@ let config = {
     // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       loadSavedConfig();
-      document.getElementById('p-x').value = config.photoX;
-document.getElementById('p-y').value = config.photoY;
-document.getElementById('p-w').value = config.photoW;
-document.getElementById('p-h').value = config.photoH;
-document.getElementById('p-scale').value = config.photoScale || 100; // <--- Add this
-const scaleLabel = document.getElementById('photo-scale-val');
-if (scaleLabel) scaleLabel.innerText = `${config.photoScale || 100}%`;
       loadSheetData();
       checkUrlHash();
       window.addEventListener('hashchange', checkUrlHash);
@@ -907,7 +864,6 @@ if (scaleLabel) scaleLabel.innerText = `${config.photoScale || 100}%`;
       config.photoY = parseInt(document.getElementById('p-y').value);
       config.photoW = parseInt(document.getElementById('p-w').value);
       config.photoH = parseInt(document.getElementById('p-h').value);
-      onfig.photoScale = parseInt(document.getElementById('p-scale').value) || 100; //
       
       config.roleX = parseInt(document.getElementById('t-role-x').value);
       config.roleY = parseInt(document.getElementById('t-role-y').value);
@@ -980,18 +936,12 @@ if (scaleLabel) scaleLabel.innerText = `${config.photoScale || 100}%`;
           ` : ''}
           
           <!-- Athlete Photo -->
-<img id="calib-photo-${ath.id}" src="${ath.photo}" class="id-elem-photo" style="
-  left: ${config.photoX}px;
-  top: ${config.photoY}px;
-  width: ${config.photoW}px;
-  height: ${config.photoH}px;
-  transform: scale(${(config.photoScale || 100) / 100});
-  transform-origin: center center;
-  position: absolute;
-  z-index: 3;
-  object-fit: contain;
-  pointer-events: none;
-" onerror="this.src='https://via.placeholder.com/300x400?text=Athlete'">
+          <img id="calib-photo-${ath.id}" src="${ath.photo}" class="id-elem-photo" style="
+            left: ${config.photoX}px;
+            top: ${config.photoY}px;
+            width: ${config.photoW}px;
+            height: ${config.photoH}px;
+          " onerror="this.src='https://via.placeholder.com/300x400?text=Athlete'">
 
           <!-- Single Clean Role Layer -->
           <div class="id-card-text text-center px-2" style="
