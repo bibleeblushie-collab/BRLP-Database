@@ -7,27 +7,29 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#080c14',
-                        cardbg: '#0f172a',
-                        cardborder: '#1e293b',
-                        brlred: '#dc2626',
-                        brlnavy: '#0b1d3a',
-                        brlgold: '#f59e0b',
-                        neoncyan: '#06b6d4',
-                        neongreen: '#10b981'
-                    },
-                    boxShadow: {
-                        'neon-blue': '0 0 20px rgba(37, 99, 235, 0.35)',
-                        'neon-cyan': '0 0 20px rgba(6, 182, 212, 0.35)',
-                        'brl-glow': '0 0 25px rgba(220, 38, 38, 0.25)'
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            darkbg: '#080c14',
+                            cardbg: '#0f172a',
+                            cardborder: '#1e293b',
+                            brlred: '#dc2626',
+                            brlnavy: '#0b1d3a',
+                            brlgold: '#f59e0b',
+                            neoncyan: '#06b6d4',
+                            neongreen: '#10b981'
+                        },
+                        boxShadow: {
+                            'neon-blue': '0 0 20px rgba(37, 99, 235, 0.35)',
+                            'neon-cyan': '0 0 20px rgba(6, 182, 212, 0.35)',
+                            'brl-glow': '0 0 25px rgba(220, 38, 38, 0.25)'
+                        }
                     }
                 }
-            }
+            };
         }
     </script>
     <!-- FontAwesome Icons -->
@@ -38,13 +40,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #080c14;
             color: #f3f4f6;
             overflow-x: hidden;
+            margin: 0;
         }
         .font-header {
             font-family: 'Montserrat', sans-serif;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* External QR Scan Mode: Completely hide Admin Dashboard */
+        body.qr-scan-mode header,
+        body.qr-scan-mode main,
+        body.qr-scan-mode footer,
+        body.qr-scan-mode .admin-only {
+            display: none !important;
         }
 
         /* Standard CR80 ID Card Dimensions (Portrait 340px x 510px) */
@@ -67,7 +81,7 @@
             cursor: grabbing;
         }
         .draggable-item:hover {
-            outline: 1px dashed rgba(59, 130, 246, 0.75);
+            outline: 1px dashed rgba(59, 130, 246, 0.85);
             outline-offset: 2px;
         }
 
@@ -127,8 +141,8 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brlred selection:text-white">
 
-    <!-- TOP NAVIGATION HEADER -->
-    <header class="border-b border-cardborder bg-cardbg/90 backdrop-blur-md sticky top-0 z-30 no-print">
+    <!-- TOP NAVIGATION HEADER (ADMIN ONLY) -->
+    <header class="border-b border-cardborder bg-cardbg/90 backdrop-blur-md sticky top-0 z-30 no-print admin-only">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo & System Title -->
             <div class="flex items-center space-x-4">
@@ -181,8 +195,8 @@
         </div>
     </header>
 
-    <!-- DASHBOARD MAIN BODY -->
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 no-print">
+    <!-- DASHBOARD MAIN BODY (ADMIN ONLY) -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 no-print admin-only">
 
         <!-- METRICS SUMMARY CARDS -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -264,7 +278,7 @@
             </div>
 
             <!-- Batch Selection Controls -->
-            <div class="flex items-center justify-between border-t border-cardborder/60 pt-3 text-xs text-gray-400">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-cardborder/60 pt-3 text-xs text-gray-400">
                 <div class="flex items-center space-x-4">
                     <label class="flex items-center space-x-2 cursor-pointer hover:text-white">
                         <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded bg-darkbg border-cardborder text-brlred focus:ring-0 w-4 h-4">
@@ -272,7 +286,12 @@
                     </label>
                     <button onclick="clearSelections()" class="hover:text-red-400 transition">Clear selection</button>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-gray-300 hover:text-white">
+                        <input type="checkbox" id="print-include-back" checked class="rounded bg-darkbg border-cardborder text-brlred focus:ring-0 w-3.5 h-3.5">
+                        <span>Include Back Side on Print</span>
+                    </label>
+                    <span>•</span>
                     <button onclick="triggerBatchPrintSelected()" class="text-neoncyan font-bold hover:underline flex items-center space-x-1">
                         <i class="fa-solid fa-print"></i>
                         <span>Print Selected Cards</span>
@@ -329,11 +348,32 @@
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="border-t border-cardborder bg-cardbg py-6 mt-12 text-center text-xs text-gray-500 no-print">
+    <!-- FOOTER (ADMIN ONLY) -->
+    <footer class="border-t border-cardborder bg-cardbg py-6 mt-12 text-center text-xs text-gray-500 no-print admin-only">
         <p>© 2026–2027 Babe Ruth League Philippines. Official National Athlete Registry & Smart Card Calibration System.</p>
         <p class="mt-1 text-gray-600">Standard CR80 Printable Format • Includes Instant Digital Cryptographic Verification QR Code Engine</p>
     </footer>
+
+
+    <!-- ========================================================================= -->
+    <!-- LOCKED EXTERNAL SESSION CLOSED SCREEN (SHOWN AFTER QR SCANNER EXITS) -->
+    <!-- ========================================================================= -->
+    <div id="external-session-closed-screen" class="fixed inset-0 bg-darkbg z-[60] hidden flex items-center justify-center p-6 text-center">
+        <div class="bg-cardbg border border-cardborder rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-5">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-3xl">
+                <i class="fa-solid fa-shield-check"></i>
+            </div>
+            <div>
+                <h2 class="font-header font-black text-xl text-white tracking-wide">Verification Session Closed</h2>
+                <p class="text-xs text-gray-400 mt-2 leading-relaxed">
+                    The official BRLP athlete verification view has been closed. You may now safely close this browser tab or return to your camera scanner.
+                </p>
+            </div>
+            <div class="pt-2 border-t border-cardborder/60 text-[11px] text-gray-500 font-mono">
+                Babe Ruth League Philippines • Public Verification Portal
+            </div>
+        </div>
+    </div>
 
 
     <!-- ========================================================================= -->
@@ -341,7 +381,7 @@
     <!-- ========================================================================= -->
 
     <!-- 1. ATHLETE-SPECIFIC ID CALIBRATOR MODAL -->
-    <div id="calibrator-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div id="calibrator-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print admin-only">
         <div class="bg-cardbg border border-cardborder rounded-3xl max-w-6xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden">
             
             <!-- Modal Header -->
@@ -352,7 +392,7 @@
                     </div>
                     <div>
                         <h2 class="font-header font-bold text-lg text-white">BRLP ID Card Calibrator</h2>
-                        <p class="text-xs text-gray-400">Position Photo (Behind Text), NAME, ROLE, CHARTER, AGE DIVISION & QR Code</p>
+                        <p class="text-xs text-gray-400">Configure Front Side (Photo, Text, QR) & Back ID Side Design</p>
                     </div>
                 </div>
 
@@ -402,10 +442,13 @@
                             <i class="fa-solid fa-font mr-1"></i> Name, Role, Charter & Age Div
                         </button>
                         <button onclick="switchCalibTab('qr')" id="tab-btn-qr" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200">
-                            <i class="fa-solid fa-qrcode mr-1"></i> QR Position
+                            <i class="fa-solid fa-qrcode mr-1"></i> Front QR
+                        </button>
+                        <button onclick="switchCalibTab('back')" id="tab-btn-back" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200">
+                            <i class="fa-solid fa-id-card-clip mr-1 text-cyan-400"></i> Back ID Side
                         </button>
                         <button onclick="switchCalibTab('template')" id="tab-btn-template" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200">
-                            <i class="fa-solid fa-paint-roller mr-1"></i> Template BG
+                            <i class="fa-solid fa-paint-roller mr-1"></i> Front Template BG
                         </button>
                     </div>
 
@@ -601,13 +644,13 @@
                         </div>
                     </div>
 
-                    <!-- TAB 3: QR CODE MANUAL POSITIONING -->
+                    <!-- TAB 3: FRONT QR CODE MANUAL POSITIONING -->
                     <div id="tab-content-qr" class="space-y-4 hidden">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">QR Code Manual Position & Size</h4>
+                            <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Front QR Code Manual Position & Size</h4>
                             <label class="flex items-center space-x-2 text-xs text-gray-300 cursor-pointer">
                                 <input type="checkbox" id="calib-showQr" checked onchange="updateCalibrationFromUI()" class="accent-brlred w-4 h-4 rounded">
-                                <span>Show QR Code</span>
+                                <span>Show Front QR Code</span>
                             </label>
                         </div>
                         
@@ -646,10 +689,145 @@
                         </div>
                     </div>
 
-                    <!-- TAB 4: ID TEMPLATE BACKGROUND CONTROLS -->
+                    <!-- TAB 4: BACK ID SIDE CUSTOMIZATION -->
+                    <div id="tab-content-back" class="space-y-3.5 hidden">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Back ID Card Layout & Content</h4>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Synced Athlete QR</span>
+                        </div>
+
+                        <!-- Back Background Graphic & Colors -->
+                        <div class="bg-darkbg p-3.5 rounded-xl border border-cardborder space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="text-xs font-bold text-white"><i class="fa-solid fa-image text-purple-400 mr-1.5"></i>Back Background Graphic & Colors</span>
+                                <div class="flex items-center space-x-2">
+                                    <label class="px-2.5 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-[11px] font-bold cursor-pointer transition">
+                                        <i class="fa-solid fa-upload mr-1"></i>Upload Back BG
+                                        <input type="file" accept="image/*" onchange="handleBackBgUpload(event)" class="hidden">
+                                    </label>
+                                    <button type="button" onclick="clearBackBgImage()" class="px-2 py-1 bg-slate-800 hover:bg-red-900/60 text-gray-300 hover:text-red-300 rounded-lg text-[11px] font-bold transition">Clear BG</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                                <div>
+                                    <label class="text-gray-400 block mb-1">BG Fit Mode</label>
+                                    <select id="calib-backBgFit" onchange="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg px-2 py-1 text-white">
+                                        <option value="cover">Cover</option>
+                                        <option value="contain">Contain</option>
+                                        <option value="100% 100%">Stretch</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-gray-400 mb-1"><span>BG Opacity</span><span id="val-backBgOpacity" class="text-purple-400 font-mono">100%</span></div>
+                                    <input type="range" id="calib-backBgOpacity" min="10" max="100" value="100" oninput="updateCalibrationFromUI()" class="w-full accent-purple-500">
+                                </div>
+                                <div>
+                                    <label class="text-gray-400 block mb-1">Card Base Color</label>
+                                    <input type="color" id="calib-backBgColor" value="#ffffff" oninput="updateCalibrationFromUI()" class="w-full h-7 rounded cursor-pointer bg-transparent border border-cardborder">
+                                </div>
+                                <div>
+                                    <label class="text-gray-400 block mb-1">Text Color</label>
+                                    <input type="color" id="calib-backTextColor" value="#0f172a" oninput="updateCalibrationFromUI()" class="w-full h-7 rounded cursor-pointer bg-transparent border border-cardborder">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3 pt-1 border-t border-cardborder/60 text-[11px]">
+                                <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+                                    <input type="checkbox" id="calib-backShowHeader" checked onchange="updateCalibrationFromUI()" class="accent-brlred rounded">
+                                    <span>Top Header Strip</span>
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-gray-400">Strip Color:</span>
+                                    <input type="color" id="calib-backHeaderColor" value="#0f172a" oninput="updateCalibrationFromUI()" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-gray-400">Title Color:</span>
+                                    <input type="color" id="calib-backTitleColor" value="#0f172a" oninput="updateCalibrationFromUI()" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Back Text & Credential Details -->
+                        <div class="bg-darkbg p-3.5 rounded-xl border border-cardborder space-y-2.5 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="text-[11px] text-gray-400 block mb-1">Back Credential Title</label>
+                                    <input type="text" id="calib-backTitle" value="OFFICIAL ATHLETE CREDENTIAL" oninput="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg px-2.5 py-1.5 text-white text-xs">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-gray-400 mb-1"><span>Title Size</span><span id="val-backTitleSize" class="text-brlred font-mono">12px</span></div>
+                                    <input type="range" id="calib-backTitleSize" min="9" max="22" value="12" oninput="updateCalibrationFromUI()" class="w-full accent-brlred mt-1">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-[11px] text-gray-400 mb-1">
+                                    <span>Official Notice / Terms Text</span>
+                                    <span>Font Size: <span id="val-backNoticeSize" class="text-brlred font-mono">9px</span></span>
+                                </div>
+                                <textarea id="calib-backNotice" rows="2" oninput="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg p-2 text-white text-[11px] leading-snug"></textarea>
+                                <input type="range" id="calib-backNoticeSize" min="7" max="15" value="9" oninput="updateCalibrationFromUI()" class="w-full accent-brlred mt-1">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                <label class="flex items-center space-x-2 text-[11px] text-gray-300 cursor-pointer">
+                                    <input type="checkbox" id="calib-backShowInfoBox" checked onchange="updateCalibrationFromUI()" class="accent-brlred rounded">
+                                    <span>Show Info Box</span>
+                                </label>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block">Hotline Number</label>
+                                    <input type="text" id="calib-backHotline" value="+63 (02) 8888-BABE" oninput="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg px-2 py-1 text-white text-[11px]">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block">Footer Text</label>
+                                    <input type="text" id="calib-backFooter" value="Babe Ruth League Inc. • National Registry Office" oninput="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg px-2 py-1 text-white text-[11px]">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Back QR Code Position & Size (Identical Athlete Profile QR) -->
+                        <div class="bg-darkbg p-3.5 rounded-xl border border-cardborder space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-white"><i class="fa-solid fa-qrcode text-emerald-400 mr-1.5"></i>Back QR Code Position (Same Athlete Profile QR)</span>
+                                <label class="flex items-center space-x-1.5 text-xs text-gray-300 cursor-pointer">
+                                    <input type="checkbox" id="calib-backShowQr" checked onchange="updateCalibrationFromUI()" class="accent-brlred rounded">
+                                    <span>Show Back QR</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-gray-400 mb-1"><span>Back QR X</span><span id="val-backQrX" class="text-brlred font-mono">0px</span></div>
+                                    <div class="flex items-center space-x-1">
+                                        <button type="button" onclick="nudgeCalib('backQrX', -2)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white font-bold">-</button>
+                                        <input type="range" id="calib-backQrX" min="-140" max="140" value="0" oninput="updateCalibrationFromUI()" class="w-full accent-brlred">
+                                        <button type="button" onclick="nudgeCalib('backQrX', 2)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white font-bold">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-gray-400 mb-1"><span>Back QR Y</span><span id="val-backQrY" class="text-brlred font-mono">0px</span></div>
+                                    <div class="flex items-center space-x-1">
+                                        <button type="button" onclick="nudgeCalib('backQrY', -2)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white font-bold">-</button>
+                                        <input type="range" id="calib-backQrY" min="-350" max="90" value="0" oninput="updateCalibrationFromUI()" class="w-full accent-brlred">
+                                        <button type="button" onclick="nudgeCalib('backQrY', 2)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white font-bold">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-gray-400 mb-1"><span>Back QR Size</span><span id="val-backQrSize" class="text-brlred font-mono">90px</span></div>
+                                    <input type="range" id="calib-backQrSize" min="45" max="150" value="90" oninput="updateCalibrationFromUI()" class="w-full accent-brlred">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 block mb-0.5">Back QR Caption Label (Leave blank to hide)</label>
+                                <input type="text" id="calib-backQrLabel" value="Scan QR for Digital Eligibility Profile" oninput="updateCalibrationFromUI()" class="w-full bg-slate-900 border border-cardborder rounded-lg px-2.5 py-1 text-white text-[11px]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: FRONT ID TEMPLATE BACKGROUND CONTROLS -->
                     <div id="tab-content-template" class="space-y-4 hidden">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Custom ID Card Background</h4>
+                            <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Front Custom ID Card Background</h4>
                             <button onclick="openCustomTemplateModal()" class="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                                 <span>Upload / Change Graphic Template</span>
@@ -698,7 +876,7 @@
 
                     <p class="text-[11px] text-gray-400 mt-3 text-center">
                         <i class="fa-solid fa-hand-pointer mr-1 text-cyan-400"></i>
-                        Tip: Drag the Photo, Name, Role, Charter, Age Division, or QR directly on the card or use the sliders.
+                        Tip: Drag elements directly on either Front or Back preview, or fine-tune with sliders.
                     </p>
                 </div>
 
@@ -718,7 +896,7 @@
 
 
     <!-- 2. OFFICIAL VERIFIED ATHLETE PROFILE MODAL -->
-    <div id="verified-profile-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div id="verified-profile-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
         <div class="bg-cardbg border border-brlred/50 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-brl-glow overflow-hidden relative">
             
             <!-- Header Banner -->
@@ -731,7 +909,7 @@
                 <h2 id="verify-athlete-name" class="font-header text-2xl font-black text-white tracking-wide">ATHLETE NAME</h2>
                 <p id="verify-athlete-charter-team" class="text-xs text-cyan-300 font-medium mt-1">Manila Titans • 16U Baseball Division</p>
 
-                <button onclick="closeVerifiedModal()" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-black/50 hover:bg-black/70 text-gray-300 hover:text-white flex items-center justify-center">
+                <button id="verify-top-close-btn" onclick="handleVerifiedModalExit()" title="Close" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-black/50 hover:bg-black/70 text-gray-300 hover:text-white flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -787,44 +965,30 @@
                     </div>
                 </div>
 
+                <!-- CLICKABLE COMPLIANCE CHECKLIST & UPLOADED FILES -->
                 <div>
-                    <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center space-x-2">
-                        <i class="fa-solid fa-file-shield text-emerald-400"></i>
-                        <span>BRLP Official Compliance Checklist</span>
-                    </h4>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center space-x-2">
+                            <i class="fa-solid fa-file-shield text-emerald-400"></i>
+                            <span>BRLP Official Compliance & Uploaded Files</span>
+                        </h4>
+                        <span class="text-[10px] text-cyan-400 font-semibold">Click any linked file to inspect</span>
+                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div class="bg-darkbg border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-solid fa-certificate text-emerald-400"></i>
-                                <span>PSA Birth Certificate</span>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">VERIFIED</span>
-                        </div>
+                    <div id="verify-compliance-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <!-- Dynamically rendered with clickable links -->
+                    </div>
 
-                        <div class="bg-darkbg border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-solid fa-id-card text-emerald-400"></i>
-                                <span>National / School ID</span>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">VERIFIED</span>
+                    <!-- Additional Uploaded File Link Banner (if attached) -->
+                    <div id="verify-extra-file-box" class="hidden mt-3 bg-blue-950/40 border border-blue-500/40 p-3 rounded-xl flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2 truncate mr-3">
+                            <i class="fa-solid fa-folder-open text-cyan-400"></i>
+                            <span class="font-bold text-white truncate">Uploaded Supporting File / Folder</span>
                         </div>
-
-                        <div class="bg-darkbg border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-solid fa-file-medical text-emerald-400"></i>
-                                <span>Medical Clearance 2026</span>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">PASSED</span>
-                        </div>
-
-                        <div class="bg-darkbg border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-solid fa-file-signature text-emerald-400"></i>
-                                <span>Parental Waiver</span>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">SIGNED</span>
-                        </div>
+                        <a id="verify-extra-file-link" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[11px] font-bold flex-shrink-0 flex items-center space-x-1 transition">
+                            <span>Open File</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -841,15 +1005,15 @@
 
             <div class="px-6 py-4 border-t border-cardborder bg-darkbg/60 flex items-center justify-between">
                 <span class="text-[11px] text-gray-500">Babe Ruth League Philippines National Secretariat</span>
-                <button onclick="closeVerifiedModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition">Done</button>
+                <button id="verify-bottom-close-btn" onclick="handleVerifiedModalExit()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition">Done</button>
             </div>
         </div>
     </div>
 
 
     <!-- 3. ADD / EDIT ATHLETE MODAL -->
-    <div id="athlete-form-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
-        <div class="bg-cardbg border border-cardborder rounded-3xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden">
+    <div id="athlete-form-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print admin-only">
+        <div class="bg-cardbg border border-cardborder rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-cardborder flex items-center justify-between">
                 <h3 id="form-modal-title" class="font-header font-bold text-lg text-white">Add New Athlete Profile</h3>
                 <button onclick="closeAthleteFormModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-gray-400 hover:text-white flex items-center justify-center">
@@ -857,7 +1021,7 @@
                 </button>
             </div>
 
-            <form id="athlete-form" onsubmit="handleSaveAthlete(event)" class="p-6 space-y-4 text-xs">
+            <form id="athlete-form" onsubmit="handleSaveAthlete(event)" class="p-6 overflow-y-auto space-y-4 text-xs">
                 <input type="hidden" id="form-athlete-id">
 
                 <div class="grid grid-cols-2 gap-4">
@@ -915,7 +1079,36 @@
                 <div>
                     <label class="text-gray-400 block font-semibold mb-1">Athlete Portrait Photo URL</label>
                     <input type="url" id="form-photo" placeholder="https://..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3.5 py-2.5 text-white focus:border-brlred focus:outline-none">
-                    <span class="text-[10px] text-gray-500 mt-0.5 block">Leave blank for automatic athlete portrait avatar</span>
+                    <span class="text-[10px] text-gray-500 mt-0.5 block">Supports direct image URLs or Google Drive share links</span>
+                </div>
+
+                <!-- Uploaded Compliance Document Links -->
+                <div class="border-t border-cardborder pt-3 space-y-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider block">
+                        <i class="fa-solid fa-link mr-1"></i> Uploaded Document File Links (Clickable on QR Profile)
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-gray-400 block font-semibold mb-1">PSA Birth Certificate URL</label>
+                            <input type="url" id="form-doc-psa" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 block font-semibold mb-1">National / School ID URL</label>
+                            <input type="url" id="form-doc-id" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 block font-semibold mb-1">Medical Clearance 2026 URL</label>
+                            <input type="url" id="form-doc-medical" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 block font-semibold mb-1">Parental Waiver URL</label>
+                            <input type="url" id="form-doc-waiver" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 block font-semibold mb-1">Additional Uploaded File / Drive Folder URL</label>
+                        <input type="url" id="form-doc-extra" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                    </div>
                 </div>
 
                 <div class="pt-4 flex justify-end space-x-3">
@@ -928,7 +1121,7 @@
 
 
     <!-- 4. GOOGLE SHEET & CSV SYNC MODAL -->
-    <div id="sync-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div id="sync-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print admin-only">
         <div class="bg-cardbg border border-cardborder rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-cardborder flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -972,12 +1165,12 @@
                         <label class="text-gray-200 font-bold block">Option 3: Raw CSV Text Paste</label>
                         <button type="button" onclick="loadSampleCSVTemplate()" class="text-neoncyan hover:underline font-bold">Load Sample Template</button>
                     </div>
-                    <textarea id="csv-paste-input" rows="4" placeholder="id,name,jersey,sport,division,charter,team,dob,position,photo&#10;BRLP-2026-8841,Kai Sotto Jr.,15,Baseball,16U,Manila Bay Charter,Manila Titans,2010-05-14,Pitcher,https://..." class="w-full bg-darkbg border border-cardborder rounded-xl p-3 text-gray-300 font-mono text-[11px] focus:border-brlred focus:outline-none"></textarea>
+                    <textarea id="csv-paste-input" rows="4" placeholder="id,name,jersey,sport,division,charter,team,dob,position,photo,docPsa,docId,docMedical,docWaiver&#10;BRLP-2026-8841,Kai Sotto Jr.,15,Baseball,16U,Manila Bay Charter,Manila Titans,2010-05-14,Pitcher,https://..." class="w-full bg-darkbg border border-cardborder rounded-xl p-3 text-gray-300 font-mono text-[11px] focus:border-brlred focus:outline-none"></textarea>
                 </div>
 
                 <!-- Import Mode & Expected Columns -->
                 <div class="bg-darkbg p-3 rounded-xl border border-cardborder flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-400">
-                    <span>Columns: <code>id, name, jersey, sport, division, charter, team, dob, position, photo</code></span>
+                    <span>Auto-maps name, jersey, sport, division, charter, team, dob, position, photo & uploaded file links</span>
                     <label class="flex items-center space-x-2 text-gray-200 font-semibold cursor-pointer">
                         <input type="checkbox" id="csv-replace-all" class="rounded bg-slate-900 border-cardborder text-brlred">
                         <span>Replace existing roster</span>
@@ -994,7 +1187,7 @@
 
 
     <!-- 5. CUSTOM ID TEMPLATE STUDIO MODAL -->
-    <div id="custom-template-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div id="custom-template-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print admin-only">
         <div class="bg-cardbg border border-cardborder rounded-3xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-cardborder flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -1008,7 +1201,7 @@
 
             <div class="p-6 space-y-5 text-xs">
                 <div>
-                    <label class="text-gray-200 font-bold block mb-1">Upload ID Card Background Graphic File</label>
+                    <label class="text-gray-200 font-bold block mb-1">Upload Front ID Card Background Graphic File</label>
                     <div id="template-dropzone" 
                          ondragover="handleDragOver(event)" 
                          ondragleave="handleDragLeave(event)" 
@@ -1114,7 +1307,12 @@
                 team: 'Manila Titans',
                 dob: '2010-05-14',
                 position: 'Pitcher / 1B',
-                photo: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=400',
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: ''
             },
             {
                 id: 'BRLP-2026-8842',
@@ -1126,7 +1324,12 @@
                 team: 'Batangas Admirals',
                 dob: '2008-09-22',
                 position: 'Shortstop',
-                photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
+                docPsa: '',
+                docId: '',
+                docMedical: '',
+                docWaiver: '',
+                docExtra: ''
             },
             {
                 id: 'BRLP-2026-8843',
@@ -1138,7 +1341,12 @@
                 team: 'Cebu Wave',
                 dob: '2012-03-11',
                 position: 'Catcher',
-                photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+                docPsa: '',
+                docId: '',
+                docMedical: '',
+                docWaiver: '',
+                docExtra: ''
             },
             {
                 id: 'BRLP-2026-8844',
@@ -1150,7 +1358,12 @@
                 team: 'Davao Eagle Rays',
                 dob: '2014-08-04',
                 position: 'Outfielder',
-                photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
+                docPsa: '',
+                docId: '',
+                docMedical: '',
+                docWaiver: '',
+                docExtra: ''
             },
             {
                 id: 'BRLP-2026-8845',
@@ -1162,7 +1375,12 @@
                 team: 'Clark Aviators',
                 dob: '2010-11-30',
                 position: 'Third Base',
-                photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+                docPsa: '',
+                docId: '',
+                docMedical: '',
+                docWaiver: '',
+                docExtra: ''
             },
             {
                 id: 'BRLP-2026-8846',
@@ -1174,11 +1392,16 @@
                 team: 'Manila Angels',
                 dob: '2008-01-19',
                 position: 'Pitcher',
-                photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400'
+                photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
+                docPsa: '',
+                docId: '',
+                docMedical: '',
+                docWaiver: '',
+                docExtra: ''
             }
         ];
 
-        // DEFAULT CALIBRATION PARAMETERS (Photo behind text, only Name, Role, Charter, Age Division + QR)
+        // DEFAULT CALIBRATION PARAMETERS (Front + Modifiable Back ID)
         const DEFAULT_GLOBAL_CALIBRATION = {
             photoX: 0,
             photoY: 0,
@@ -1213,7 +1436,29 @@
             qrX: 0,
             qrY: 0,
             qrSize: 70,
-            showQr: true
+            showQr: true,
+
+            // Back ID Side Customization
+            backBgUrl: '',
+            backBgFit: 'cover',
+            backBgOpacity: 100,
+            backBgColor: '#ffffff',
+            backTextColor: '#0f172a',
+            backShowHeader: true,
+            backHeaderColor: '#0f172a',
+            backTitle: 'OFFICIAL ATHLETE CREDENTIAL',
+            backTitleSize: 12,
+            backTitleColor: '#0f172a',
+            backNotice: 'This card is official property of Babe Ruth League Philippines. Cardholder is an officially certified participant in the 2026–2027 National Qualifiers & League Championship Series.',
+            backNoticeSize: 9,
+            backShowInfoBox: true,
+            backHotline: '+63 (02) 8888-BABE',
+            backFooter: 'Babe Ruth League Inc. • National Registry Office',
+            backShowQr: true,
+            backQrX: 0,
+            backQrY: 0,
+            backQrSize: 90,
+            backQrLabel: 'Scan QR for Digital Eligibility Profile'
         };
 
         // APPLICATION STATE
@@ -1231,20 +1476,56 @@
             },
             calibratorTarget: 'GLOBAL',
             calibratorPreviewSide: 'front',
-            viewMode: 'grid'
+            viewMode: 'grid',
+            isExternalScanMode: false
         };
 
         // APPLICATION INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
             loadStateFromStorage();
-            populateCharterFilter();
-            renderGallery();
-            updateStats();
-            setupPreviewDragHandlers();
-
-            checkURLForVerification();
+            const isPublicScan = checkURLForVerification();
+            if (!isPublicScan) {
+                populateCharterFilter();
+                renderGallery();
+                updateStats();
+                setupPreviewDragHandlers();
+            }
             window.addEventListener('hashchange', checkURLForVerification);
         });
+
+        // HELPER: Normalize Google Drive Links into Direct Viewable Image URLs
+        function normalizeDriveImageUrl(url) {
+            if (!url) return '';
+            const trimmed = url.trim();
+            const matchId = trimmed.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)([a-zA-Z0-9_-]+)/);
+            if (matchId && matchId[1]) {
+                return `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w1000`;
+            }
+            return trimmed;
+        }
+
+        // HELPER: Compress large uploaded template images so localStorage never overflows
+        function compressImageDataUrl(dataUrl, maxWidth = 900, quality = 0.85) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (dataUrl.length < 900000 && img.width <= maxWidth) {
+                        resolve(dataUrl);
+                        return;
+                    }
+                    const scale = Math.min(1, maxWidth / img.width);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const isPng = dataUrl.startsWith('data:image/png');
+                    resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
+            });
+        }
 
         // LOCAL STORAGE
         function loadStateFromStorage() {
@@ -1286,7 +1567,12 @@
         }
 
         function saveCalibrationsToStorage() {
-            localStorage.setItem(STORAGE_KEY_CALIBRATION, JSON.stringify(appState.calibrations));
+            try {
+                localStorage.setItem(STORAGE_KEY_CALIBRATION, JSON.stringify(appState.calibrations));
+            } catch (e) {
+                console.warn("Storage write error for calibrations:", e);
+                showToastNotification("Warning: Image file too large for browser storage. Try a smaller file.");
+            }
         }
 
         function saveCustomTemplateToStorage() {
@@ -1301,6 +1587,7 @@
                 }));
             } catch (e) {
                 console.warn("Storage write error for template image:", e);
+                showToastNotification("Template image is too large for browser cache. Please use a smaller image (<2MB).");
             }
         }
 
@@ -1316,6 +1603,7 @@
         // CHARTER FILTER OPTIONS
         function populateCharterFilter() {
             const select = document.getElementById('filter-charter');
+            if (!select) return;
             const charters = Array.from(new Set(appState.athletes.map(a => a.charter).filter(Boolean)));
             select.innerHTML = '<option value="ALL">All Charters</option>' + 
                 charters.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -1323,7 +1611,9 @@
 
         // UPDATE STATS COUNTERS
         function updateStats() {
-            document.getElementById('stat-total-count').textContent = appState.athletes.length;
+            const totalEl = document.getElementById('stat-total-count');
+            if (!totalEl) return;
+            totalEl.textContent = appState.athletes.length;
             const charters = new Set(appState.athletes.map(a => a.charter).filter(Boolean));
             document.getElementById('stat-charter-count').textContent = charters.size;
             document.getElementById('stat-verified-count').textContent = appState.athletes.length;
@@ -1359,7 +1649,9 @@
         /* ========================================================================= */
 
         function renderGallery() {
-            const search = document.getElementById('filter-search').value.toLowerCase().trim();
+            const searchEl = document.getElementById('filter-search');
+            if (!searchEl) return;
+            const search = searchEl.value.toLowerCase().trim();
             const sport = document.getElementById('filter-sport').value;
             const division = document.getElementById('filter-division').value;
             const charter = document.getElementById('filter-charter').value;
@@ -1404,7 +1696,7 @@
                 grid.innerHTML = filtered.map(athlete => {
                     const isSelected = appState.selectedAthleteIds.has(athlete.id);
                     const hasOverride = !!(appState.calibrations.athleteOverrides && appState.calibrations.athleteOverrides[athlete.id]);
-                    const photoUrl = athlete.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=200`;
+                    const photoUrl = normalizeDriveImageUrl(athlete.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=200`;
 
                     return `
                     <div class="bg-cardbg border ${isSelected ? 'border-brlred shadow-brl-glow' : 'border-cardborder'} rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:border-slate-600 relative group">
@@ -1429,7 +1721,7 @@
                                 </div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-white text-sm truncate hover:text-brlred transition cursor-pointer" onclick="openVerifiedModal('${athlete.id}')">${athlete.name}</h4>
+                                <h4 class="font-bold text-white text-sm truncate hover:text-brlred transition cursor-pointer" onclick="openVerifiedModal('${athlete.id}', false)">${athlete.name}</h4>
                                 <p class="text-xs text-cyan-400 font-bold">${athlete.division} • ${athlete.sport}</p>
                                 <p class="text-[11px] text-gray-300 truncate mt-0.5">${athlete.position || 'Athlete'}</p>
                                 <p class="text-[10px] text-gray-400 truncate">${athlete.charter || 'National Charter'}</p>
@@ -1442,7 +1734,7 @@
                                 <span>Calibrate ID</span>
                             </button>
                             
-                            <button onclick="openVerifiedModal('${athlete.id}')" class="px-3 py-1.5 rounded-lg bg-darkbg border border-cardborder text-gray-300 hover:text-brlred hover:border-brlred font-semibold flex items-center justify-center space-x-1 transition">
+                            <button onclick="openVerifiedModal('${athlete.id}', false)" class="px-3 py-1.5 rounded-lg bg-darkbg border border-cardborder text-gray-300 hover:text-brlred hover:border-brlred font-semibold flex items-center justify-center space-x-1 transition">
                                 <i class="fa-solid fa-qrcode text-[10px]"></i>
                                 <span>QR Profile</span>
                             </button>
@@ -1484,7 +1776,7 @@
                         </td>
                         <td class="p-4 text-right space-x-2">
                             <button onclick="openCalibratorModal('${athlete.id}')" class="px-2.5 py-1 bg-blue-600/20 border border-blue-500/30 text-blue-300 rounded hover:bg-blue-600 hover:text-white" title="Calibrate ID"><i class="fa-solid fa-sliders"></i></button>
-                            <button onclick="openVerifiedModal('${athlete.id}')" class="px-2.5 py-1 bg-slate-800 border border-slate-700 text-gray-300 rounded hover:text-brlred" title="QR Profile"><i class="fa-solid fa-qrcode"></i></button>
+                            <button onclick="openVerifiedModal('${athlete.id}', false)" class="px-2.5 py-1 bg-slate-800 border border-slate-700 text-gray-300 rounded hover:text-brlred" title="QR Profile"><i class="fa-solid fa-qrcode"></i></button>
                             <button onclick="triggerSinglePrint('${athlete.id}')" class="px-2.5 py-1 bg-slate-800 border border-slate-700 text-emerald-400 rounded hover:bg-emerald-600 hover:text-white" title="Print Card"><i class="fa-solid fa-print"></i></button>
                         </td>
                     </tr>
@@ -1535,7 +1827,7 @@
 
 
         /* ========================================================================= */
-        /* FRAMELESS ID CARD RENDER ENGINE (PHOTO BEHIND TEXT, ONLY 4 TEXT FIELDS + QR) */
+        /* FRAMELESS ID CARD RENDER ENGINE (FRONT & MODIFIABLE BACK + IDENTICAL QR) */
         /* ========================================================================= */
 
         function renderLiveCalibratorPreview() {
@@ -1547,33 +1839,104 @@
             if (!athlete) athlete = appState.athletes[0] || SAMPLE_ATHLETES[0];
 
             const calib = getEffectiveCalibration(targetId);
+            const sharedQrUrl = getAthleteVerificationURL(athlete);
 
             if (appState.calibratorPreviewSide === 'front') {
                 wrapper.innerHTML = generateFrontIDCardHTML(athlete, calib, 'preview');
                 if (calib.showQr !== false) {
-                    generateQRCodeElement(`preview-qr-${athlete.id}`, getAthleteVerificationURL(athlete.id), calib.qrSize);
+                    generateQRCodeElement(`preview-qr-${athlete.id}`, sharedQrUrl, calib.qrSize);
                 }
             } else {
                 wrapper.innerHTML = generateBackIDCardHTML(athlete, calib, 'preview');
-                generateQRCodeElement(`preview-qr-back-${athlete.id}`, getAthleteVerificationURL(athlete.id), 90);
+                if (calib.backShowQr !== false) {
+                    generateQRCodeElement(`preview-qr-back-${athlete.id}`, sharedQrUrl, calib.backQrSize || 90);
+                }
             }
         }
 
-        function getAthleteVerificationURL(athleteId) {
-            return window.location.origin + window.location.pathname + '?id=' + athleteId;
+        // Encode portable athlete profile + clickable file links into the QR URL so external devices see full details
+        function encodePortableProfilePayload(athlete) {
+            try {
+                const payload = {
+                    i: athlete.id,
+                    n: athlete.name,
+                    j: athlete.jersey,
+                    s: athlete.sport,
+                    d: athlete.division,
+                    c: athlete.charter,
+                    t: athlete.team,
+                    b: athlete.dob,
+                    r: athlete.position
+                };
+                if (athlete.photo && athlete.photo.startsWith('http') && athlete.photo.length < 240) {
+                    payload.ph = athlete.photo;
+                }
+                if (athlete.docPsa) payload.p1 = athlete.docPsa;
+                if (athlete.docId) payload.p2 = athlete.docId;
+                if (athlete.docMedical) payload.p3 = athlete.docMedical;
+                if (athlete.docWaiver) payload.p4 = athlete.docWaiver;
+                if (athlete.docExtra) payload.px = athlete.docExtra;
+
+                const jsonStr = JSON.stringify(payload);
+                const bytes = new TextEncoder().encode(jsonStr);
+                let bin = '';
+                bytes.forEach(b => bin += String.fromCharCode(b));
+                return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function decodePortableProfilePayload(encodedStr) {
+            try {
+                let b64 = encodedStr.replace(/-/g, '+').replace(/_/g, '/');
+                while (b64.length % 4) b64 += '=';
+                const bin = atob(b64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                const jsonStr = new TextDecoder().decode(bytes);
+                const p = JSON.parse(jsonStr);
+                return {
+                    id: p.i || '',
+                    name: p.n || 'Verified Athlete',
+                    jersey: p.j || '00',
+                    sport: p.s || 'Baseball',
+                    division: p.d || '16U',
+                    charter: p.c || 'BRL Philippines',
+                    team: p.t || 'Roster Team',
+                    dob: p.b || '',
+                    position: p.r || 'Athlete',
+                    photo: p.ph || '',
+                    docPsa: p.p1 || '',
+                    docId: p.p2 || '',
+                    docMedical: p.p3 || '',
+                    docWaiver: p.p4 || '',
+                    docExtra: p.px || ''
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getAthleteVerificationURL(athleteOrId) {
+            const athlete = typeof athleteOrId === 'string'
+                ? (appState.athletes.find(a => a.id === athleteOrId) || { id: athleteOrId })
+                : athleteOrId;
+            const baseUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(athlete.id);
+            const encoded = encodePortableProfilePayload(athlete);
+            if (encoded && (baseUrl.length + encoded.length + 4) < 950) {
+                return `${baseUrl}&p=${encoded}`;
+            }
+            return baseUrl;
         }
 
         /**
-         * FRAMELESS FRONT ID CARD HTML GENERATOR:
-         * - Layer 0 (z-0): Custom ID Template Background
-         * - Layer 1 (z-10): Frameless Athlete Photo (NO BOX, ALWAYS BEHIND TEXT)
-         * - Layer 2 (z-20): NAME, ROLE, CHARTER, AGE DIVISION (NO BOXES, ALWAYS IN FRONT OF PHOTO)
-         * - Layer 3 (z-30): Manually Positioned QR Code
+         * FRAMELESS FRONT ID CARD HTML GENERATOR
          */
         function generateFrontIDCardHTML(athlete, calib, context = 'default') {
-            const photoUrl = athlete.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=300`;
+            const photoUrl = normalizeDriveImageUrl(athlete.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=300`;
 
-            const bgUrl = appState.customTemplate.url || DEFAULT_FALLBACK_TEMPLATE_SVG;
+            const bgUrl = normalizeDriveImageUrl(appState.customTemplate.url) || DEFAULT_FALLBACK_TEMPLATE_SVG;
             const bgFit = appState.customTemplate.fit || 'cover';
             const bgOpacity = (appState.customTemplate.opacity || 100) / 100;
 
@@ -1646,47 +2009,94 @@
             `;
         }
 
-        // GENERATE BACK ID CARD HTML
+        // GENERATE MODIFIABLE BACK ID CARD HTML (WITH IDENTICAL ATHLETE PROFILE QR)
         function generateBackIDCardHTML(athlete, calib, context = 'default') {
+            const backBgUrl = normalizeDriveImageUrl(calib.backBgUrl || '');
+            const backBgFit = calib.backBgFit || 'cover';
+            const backBgOpacity = (calib.backBgOpacity ?? 100) / 100;
+            const backBgColor = calib.backBgColor || '#ffffff';
+            const backTextColor = calib.backTextColor || '#0f172a';
+            const backShowHeader = calib.backShowHeader !== false;
+            const backHeaderColor = calib.backHeaderColor || '#0f172a';
+            const backTitle = calib.backTitle !== undefined ? calib.backTitle : 'OFFICIAL ATHLETE CREDENTIAL';
+            const backTitleSize = calib.backTitleSize || 12;
+            const backTitleColor = calib.backTitleColor || '#0f172a';
+            const backNotice = calib.backNotice !== undefined ? calib.backNotice : DEFAULT_GLOBAL_CALIBRATION.backNotice;
+            const backNoticeSize = calib.backNoticeSize || 9;
+            const backShowInfoBox = calib.backShowInfoBox !== false;
+            const backHotline = calib.backHotline !== undefined ? calib.backHotline : '+63 (02) 8888-BABE';
+            const backFooter = calib.backFooter !== undefined ? calib.backFooter : 'Babe Ruth League Inc. • National Registry Office';
+            const backShowQr = calib.backShowQr !== false;
+            const backQrSize = calib.backQrSize || 90;
+            const backQrX = calib.backQrX || 0;
+            const backQrY = calib.backQrY || 0;
+            const backQrLabel = calib.backQrLabel !== undefined ? calib.backQrLabel : 'Scan QR for Digital Eligibility Profile';
+
+            const dragClass = context === 'preview' ? 'draggable-item' : '';
+
             return `
-            <div class="id-card-aspect shadow-2xl flex flex-col justify-between p-5 text-slate-900 border border-slate-300 bg-white relative">
-                <div class="space-y-3">
-                    <div class="-mx-5 h-10 bg-slate-900 flex items-center px-4">
+            <div class="id-card-aspect shadow-2xl flex flex-col justify-between p-5 border border-slate-300 relative overflow-hidden"
+                 style="background-color: ${backBgColor}; color: ${backTextColor};">
+                
+                <!-- OPTIONAL CUSTOM BACK TEMPLATE IMAGE -->
+                ${backBgUrl ? `
+                <img src="${backBgUrl}" alt="Back Template" class="absolute inset-0 w-full h-full pointer-events-none"
+                     style="z-index: 0; object-fit: ${backBgFit}; opacity: ${backBgOpacity};">
+                ` : ''}
+
+                <!-- TOP CONTENT LAYER -->
+                <div class="space-y-3 relative" style="z-index: 10;">
+                    ${backShowHeader ? `
+                    <div class="-mx-5 -mt-5 h-10 flex items-center px-4" style="background-color: ${backHeaderColor};">
                         <div class="h-2 w-full bg-gradient-to-r from-slate-700 via-amber-400 to-slate-700 rounded"></div>
                     </div>
+                    ` : '<div class="pt-1"></div>'}
 
-                    <div class="text-center pt-2">
-                        <h5 class="font-header font-black text-xs text-slate-900 uppercase">OFFICIAL ATHLETE CREDENTIAL</h5>
-                        <p class="text-[9px] text-slate-600 leading-tight mt-1">
-                            This card is official property of Babe Ruth League Philippines. Cardholder is an officially certified participant in the 2026–2027 National Qualifiers & League Championship Series.
+                    <div class="text-center pt-1">
+                        <h5 class="font-header font-black uppercase" style="font-size: ${backTitleSize}px; color: ${backTitleColor};">
+                            ${backTitle}
+                        </h5>
+                        <p class="leading-tight mt-1 opacity-85" style="font-size: ${backNoticeSize}px; color: ${backTextColor};">
+                            ${backNotice}
                         </p>
                     </div>
 
-                    <div class="bg-slate-100 p-3 rounded-xl border border-slate-300 space-y-1 text-[10px]">
-                        <div class="flex justify-between text-slate-600">
-                            <span>Registration ID:</span>
+                    ${backShowInfoBox ? `
+                    <div class="bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-300 space-y-1 text-[10px] text-slate-800">
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Athlete:</span>
+                            <span class="text-slate-900 font-bold truncate max-w-[175px]">${athlete.name}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Registration ID:</span>
                             <span class="text-slate-900 font-mono font-bold">${athlete.id}</span>
                         </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Hotline:</span>
-                            <span class="text-blue-700 font-mono font-bold">+63 (02) 8888-BABE</span>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Hotline:</span>
+                            <span class="text-blue-700 font-mono font-bold">${backHotline}</span>
                         </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Security Hash:</span>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Security Hash:</span>
                             <span class="text-slate-800 font-mono font-bold">BRLP-2026-${athlete.id.split('-').pop()}</span>
                         </div>
                     </div>
+                    ` : ''}
                 </div>
 
-                <div class="flex flex-col items-center justify-center text-center py-2">
-                    <div class="bg-white p-1.5 rounded-xl border border-slate-300 shadow-md mb-2">
-                        <div id="${context}-qr-back-${athlete.id}" style="width: 90px; height: 90px;"></div>
+                <!-- IDENTICAL ATHLETE PROFILE QR CODE (DRAGGABLE & POSITIONABLE) -->
+                ${backShowQr ? `
+                <div data-drag-target="backQr" class="flex flex-col items-center justify-center text-center py-2 relative ${dragClass}"
+                     style="z-index: 20; transform: translate(${backQrX}px, ${backQrY}px);">
+                    <div class="bg-white p-1.5 rounded-xl border border-slate-300 shadow-md mb-1.5">
+                        <div id="${context}-qr-back-${athlete.id}" style="width: ${backQrSize}px; height: ${backQrSize}px;"></div>
                     </div>
-                    <span class="text-[9px] text-slate-700 font-mono font-bold">Scan QR for Digital Eligibility Profile</span>
+                    ${backQrLabel ? `<span class="text-[9px] font-mono font-bold" style="color: ${backTextColor};">${backQrLabel}</span>` : ''}
                 </div>
+                ` : '<div class="flex-1"></div>'}
 
-                <div class="text-center border-t border-slate-200 pt-2 text-[8px] text-slate-500 font-semibold">
-                    Babe Ruth League Inc. • National Registry Office
+                <!-- FOOTER -->
+                <div class="text-center border-t border-slate-300/70 pt-2 text-[8px] font-semibold relative opacity-75" style="z-index: 10; color: ${backTextColor};">
+                    ${backFooter}
                 </div>
             </div>
             `;
@@ -1707,7 +2117,7 @@
                             height: size,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
+                            correctLevel: textUrl.length > 350 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M
                         });
                     } else {
                         el.innerHTML = `<div class="bg-slate-900 text-white text-[8px] font-mono w-full h-full flex items-center justify-center text-center p-1">QR LINK</div>`;
@@ -1720,7 +2130,7 @@
 
 
         /* ========================================================================= */
-        /* CALIBRATOR ENGINE & DRAG-TO-POSITION HANDLERS */
+        /* CALIBRATOR ENGINE & DRAG-TO-POSITION HANDLERS (FRONT & BACK) */
         /* ========================================================================= */
 
         function setupPreviewDragHandlers() {
@@ -1735,9 +2145,13 @@
 
             const startDrag = (clientX, clientY, targetEl) => {
                 const dragTarget = targetEl.closest('[data-drag-target]');
-                if (!dragTarget || appState.calibratorPreviewSide !== 'front') return false;
+                if (!dragTarget) return false;
 
-                activeDragType = dragTarget.getAttribute('data-drag-target');
+                const targetName = dragTarget.getAttribute('data-drag-target');
+                if (appState.calibratorPreviewSide === 'front' && targetName === 'backQr') return false;
+                if (appState.calibratorPreviewSide === 'back' && targetName !== 'backQr') return false;
+
+                activeDragType = targetName;
                 startX = clientX;
                 startY = clientY;
 
@@ -1745,9 +2159,9 @@
                 initialValX = calib[`${activeDragType}X`] || 0;
                 initialValY = calib[`${activeDragType}Y`] || 0;
 
-                // Automatically switch calibrator tab to match dragged item
                 if (activeDragType === 'photo') switchCalibTab('photo');
                 else if (activeDragType === 'qr') switchCalibTab('qr');
+                else if (activeDragType === 'backQr') switchCalibTab('back');
                 else switchCalibTab('text');
 
                 return true;
@@ -1793,7 +2207,6 @@
         function nudgeCalib(key, delta) {
             const input = document.getElementById(`calib-${key}`);
             if (!input) return;
-            const step = parseFloat(input.step) || 1;
             const current = parseFloat(input.value) || 0;
             const min = parseFloat(input.min);
             const max = parseFloat(input.max);
@@ -1885,6 +2298,14 @@
             setTxt('val-qrX', `${calib.qrX ?? 0}px`);
             setTxt('val-qrY', `${calib.qrY ?? 0}px`);
             setTxt('val-qrSize', `${calib.qrSize ?? 70}px`);
+
+            // Back ID labels
+            setTxt('val-backBgOpacity', `${calib.backBgOpacity ?? 100}%`);
+            setTxt('val-backTitleSize', `${calib.backTitleSize ?? 12}px`);
+            setTxt('val-backNoticeSize', `${calib.backNoticeSize ?? 9}px`);
+            setTxt('val-backQrX', `${calib.backQrX ?? 0}px`);
+            setTxt('val-backQrY', `${calib.backQrY ?? 0}px`);
+            setTxt('val-backQrSize', `${calib.backQrSize ?? 90}px`);
         }
 
         function loadCalibratorFormValues(calib) {
@@ -1928,10 +2349,32 @@
             document.getElementById('calib-qrSize').value = calib.qrSize ?? 70;
             document.getElementById('calib-showQr').checked = calib.showQr !== false;
 
+            // Back ID Side inputs
+            document.getElementById('calib-backBgFit').value = calib.backBgFit || 'cover';
+            document.getElementById('calib-backBgOpacity').value = calib.backBgOpacity ?? 100;
+            document.getElementById('calib-backBgColor').value = calib.backBgColor || '#ffffff';
+            document.getElementById('calib-backTextColor').value = calib.backTextColor || '#0f172a';
+            document.getElementById('calib-backShowHeader').checked = calib.backShowHeader !== false;
+            document.getElementById('calib-backHeaderColor').value = calib.backHeaderColor || '#0f172a';
+            document.getElementById('calib-backTitleColor').value = calib.backTitleColor || '#0f172a';
+            document.getElementById('calib-backTitle').value = calib.backTitle !== undefined ? calib.backTitle : 'OFFICIAL ATHLETE CREDENTIAL';
+            document.getElementById('calib-backTitleSize').value = calib.backTitleSize ?? 12;
+            document.getElementById('calib-backNotice').value = calib.backNotice !== undefined ? calib.backNotice : DEFAULT_GLOBAL_CALIBRATION.backNotice;
+            document.getElementById('calib-backNoticeSize').value = calib.backNoticeSize ?? 9;
+            document.getElementById('calib-backShowInfoBox').checked = calib.backShowInfoBox !== false;
+            document.getElementById('calib-backHotline').value = calib.backHotline !== undefined ? calib.backHotline : '+63 (02) 8888-BABE';
+            document.getElementById('calib-backFooter').value = calib.backFooter !== undefined ? calib.backFooter : 'Babe Ruth League Inc. • National Registry Office';
+            document.getElementById('calib-backShowQr').checked = calib.backShowQr !== false;
+            document.getElementById('calib-backQrX').value = calib.backQrX ?? 0;
+            document.getElementById('calib-backQrY').value = calib.backQrY ?? 0;
+            document.getElementById('calib-backQrSize').value = calib.backQrSize ?? 90;
+            document.getElementById('calib-backQrLabel').value = calib.backQrLabel !== undefined ? calib.backQrLabel : 'Scan QR for Digital Eligibility Profile';
+
             updateSliderLabelDisplays(calib);
         }
 
         function updateCalibrationFromUI() {
+            const existing = getEffectiveCalibration(appState.calibratorTarget);
             const currentObj = {
                 photoX: parseInt(document.getElementById('calib-photoX').value) || 0,
                 photoY: parseInt(document.getElementById('calib-photoY').value) || 0,
@@ -1966,7 +2409,29 @@
                 qrX: parseInt(document.getElementById('calib-qrX').value) || 0,
                 qrY: parseInt(document.getElementById('calib-qrY').value) || 0,
                 qrSize: parseInt(document.getElementById('calib-qrSize').value) || 70,
-                showQr: document.getElementById('calib-showQr').checked
+                showQr: document.getElementById('calib-showQr').checked,
+
+                // Back ID Side properties
+                backBgUrl: existing.backBgUrl || '',
+                backBgFit: document.getElementById('calib-backBgFit').value || 'cover',
+                backBgOpacity: parseInt(document.getElementById('calib-backBgOpacity').value) || 100,
+                backBgColor: document.getElementById('calib-backBgColor').value || '#ffffff',
+                backTextColor: document.getElementById('calib-backTextColor').value || '#0f172a',
+                backShowHeader: document.getElementById('calib-backShowHeader').checked,
+                backHeaderColor: document.getElementById('calib-backHeaderColor').value || '#0f172a',
+                backTitleColor: document.getElementById('calib-backTitleColor').value || '#0f172a',
+                backTitle: document.getElementById('calib-backTitle').value,
+                backTitleSize: parseInt(document.getElementById('calib-backTitleSize').value) || 12,
+                backNotice: document.getElementById('calib-backNotice').value,
+                backNoticeSize: parseInt(document.getElementById('calib-backNoticeSize').value) || 9,
+                backShowInfoBox: document.getElementById('calib-backShowInfoBox').checked,
+                backHotline: document.getElementById('calib-backHotline').value,
+                backFooter: document.getElementById('calib-backFooter').value,
+                backShowQr: document.getElementById('calib-backShowQr').checked,
+                backQrX: parseInt(document.getElementById('calib-backQrX').value) || 0,
+                backQrY: parseInt(document.getElementById('calib-backQrY').value) || 0,
+                backQrSize: parseInt(document.getElementById('calib-backQrSize').value) || 90,
+                backQrLabel: document.getElementById('calib-backQrLabel').value
             };
 
             updateSliderLabelDisplays(currentObj);
@@ -1983,6 +2448,38 @@
             renderLiveCalibratorPreview();
         }
 
+        function handleBackBgUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const compressed = await compressImageDataUrl(evt.target.result);
+                const target = appState.calibratorTarget;
+                if (target === 'GLOBAL') {
+                    appState.calibrations.global.backBgUrl = compressed;
+                } else {
+                    const base = getEffectiveCalibration(target);
+                    appState.calibrations.athleteOverrides[target] = { ...base, backBgUrl: compressed };
+                }
+                saveCalibrationsToStorage();
+                renderLiveCalibratorPreview();
+                showToastNotification("Back ID background uploaded!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearBackBgImage() {
+            const target = appState.calibratorTarget;
+            if (target === 'GLOBAL') {
+                appState.calibrations.global.backBgUrl = '';
+            } else if (appState.calibrations.athleteOverrides[target]) {
+                appState.calibrations.athleteOverrides[target].backBgUrl = '';
+            }
+            saveCalibrationsToStorage();
+            renderLiveCalibratorPreview();
+            showToastNotification("Back ID background cleared.");
+        }
+
         function resetCurrentCalibration() {
             const target = appState.calibratorTarget;
             if (target === 'GLOBAL') {
@@ -1996,7 +2493,7 @@
         }
 
         function switchCalibTab(tabName) {
-            ['photo', 'text', 'qr', 'template'].forEach(t => {
+            ['photo', 'text', 'qr', 'back', 'template'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
                 const content = document.getElementById(`tab-content-${t}`);
                 if (!btn || !content) return;
@@ -2008,12 +2505,22 @@
                     content.classList.add('hidden');
                 }
             });
+
+            // Automatically flip preview side to match selected tab
+            if (tabName === 'back' && appState.calibratorPreviewSide !== 'back') {
+                togglePreviewSide('back', false);
+            } else if (tabName !== 'back' && appState.calibratorPreviewSide !== 'front') {
+                togglePreviewSide('front', false);
+            }
         }
 
-        function togglePreviewSide(side) {
+        function togglePreviewSide(side, syncTab = true) {
             appState.calibratorPreviewSide = side;
             document.getElementById('preview-side-front-btn').className = side === 'front' ? "px-3 py-1 rounded-lg text-xs font-bold bg-brlred text-white" : "px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-gray-400 hover:text-white";
             document.getElementById('preview-side-back-btn').className = side === 'back' ? "px-3 py-1 rounded-lg text-xs font-bold bg-brlred text-white" : "px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-gray-400 hover:text-white";
+            if (syncTab && side === 'back') {
+                switchCalibTab('back');
+            }
             renderLiveCalibratorPreview();
         }
 
@@ -2089,8 +2596,8 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                appState.customTemplate.url = evt.target.result;
+            reader.onload = async function(evt) {
+                appState.customTemplate.url = await compressImageDataUrl(evt.target.result);
                 saveCustomTemplateToStorage();
                 updateTemplateStatusUI();
                 renderLiveCalibratorPreview();
@@ -2106,7 +2613,7 @@
                 showToastNotification("Please enter an image URL.");
                 return;
             }
-            appState.customTemplate.url = url;
+            appState.customTemplate.url = normalizeDriveImageUrl(url);
             localStorage.removeItem(STORAGE_KEY_TEMPLATE_BASE64);
             saveCustomTemplateToStorage();
             updateTemplateStatusUI();
@@ -2156,12 +2663,13 @@
 
 
         /* ========================================================================= */
-        /* DIGITAL QR VERIFICATION ENGINE */
+        /* DIGITAL QR VERIFICATION ENGINE (ADMIN PREVIEW VS EXTERNAL SCANNER LOCK) */
         /* ========================================================================= */
 
         function checkURLForVerification() {
             const params = new URLSearchParams(window.location.search);
             let athleteId = params.get('id') || params.get('verify');
+            const encodedPayload = params.get('p');
 
             if (!athleteId && window.location.hash) {
                 const hash = window.location.hash.replace('#', '');
@@ -2171,13 +2679,30 @@
             }
 
             if (athleteId) {
-                openVerifiedModal(athleteId);
+                // External QR scan mode: hide admin dashboard completely
+                appState.isExternalScanMode = true;
+                document.body.classList.add('qr-scan-mode');
+                const decodedAthlete = encodedPayload ? decodePortableProfilePayload(encodedPayload) : null;
+                openVerifiedModal(athleteId, true, decodedAthlete);
+                return true;
             }
+            return false;
         }
 
-        function openVerifiedModal(athleteId) {
-            let athlete = appState.athletes.find(a => a.id === athleteId);
-            if (!athlete) athlete = SAMPLE_ATHLETES.find(a => a.id === athleteId) || appState.athletes[0];
+        function normalizeClickableFileUrl(url) {
+            if (!url) return '';
+            const trimmed = url.trim();
+            if (!trimmed) return '';
+            if (/^https?:\/\//i.test(trimmed)) return trimmed;
+            if (trimmed.startsWith('www.') || trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
+                return 'https://' + trimmed;
+            }
+            return '';
+        }
+
+        function openVerifiedModal(athleteId, isExternalScan = false, portableAthlete = null) {
+            const localAthlete = appState.athletes.find(a => a.id === athleteId) || SAMPLE_ATHLETES.find(a => a.id === athleteId);
+            const athlete = localAthlete ? { ...(portableAthlete || {}), ...localAthlete } : (portableAthlete || appState.athletes[0]);
             if (!athlete) return;
 
             document.getElementById('verify-athlete-name').textContent = athlete.name;
@@ -2185,21 +2710,94 @@
             document.getElementById('verify-id-code').textContent = athlete.id;
             document.getElementById('verify-timestamp').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
 
-            document.getElementById('verify-photo').src = athlete.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=300`;
+            document.getElementById('verify-photo').src = normalizeDriveImageUrl(athlete.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=300`;
             document.getElementById('verify-jersey').textContent = athlete.jersey;
             document.getElementById('verify-sport').textContent = athlete.sport;
             document.getElementById('verify-division').textContent = `${athlete.division} Division`;
             document.getElementById('verify-charter').textContent = athlete.charter || 'National Charter';
             document.getElementById('verify-dob').textContent = athlete.dob || 'May 14, 2010';
 
-            const shareUrl = getAthleteVerificationURL(athlete.id);
+            // Render Clickable Compliance File Links
+            const complianceItems = [
+                { label: 'PSA Birth Certificate', icon: 'fa-certificate', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docPsa) },
+                { label: 'National / School ID', icon: 'fa-id-card', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docId) },
+                { label: 'Medical Clearance 2026', icon: 'fa-file-medical', status: 'PASSED', url: normalizeClickableFileUrl(athlete.docMedical) },
+                { label: 'Parental Waiver', icon: 'fa-file-signature', status: 'SIGNED', url: normalizeClickableFileUrl(athlete.docWaiver) }
+            ];
+
+            const gridEl = document.getElementById('verify-compliance-grid');
+            gridEl.innerHTML = complianceItems.map(item => {
+                if (item.url) {
+                    return `
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                       class="bg-darkbg hover:bg-slate-900 border border-emerald-500/40 hover:border-cyan-400 p-3 rounded-xl flex items-center justify-between transition group cursor-pointer">
+                        <div class="flex items-center space-x-2 min-w-0 pr-2">
+                            <i class="fa-solid ${item.icon} text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-white font-semibold truncate group-hover:text-cyan-300 underline decoration-cyan-500/50 underline-offset-2">${item.label}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 rounded flex-shrink-0 flex items-center space-x-1">
+                            <span>VIEW FILE</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </span>
+                    </a>
+                    `;
+                } else {
+                    return `
+                    <div class="bg-darkbg border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid ${item.icon} text-emerald-400"></i>
+                            <span>${item.label}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">${item.status}</span>
+                    </div>
+                    `;
+                }
+            }).join('');
+
+            const extraUrl = normalizeClickableFileUrl(athlete.docExtra);
+            const extraBox = document.getElementById('verify-extra-file-box');
+            const extraLink = document.getElementById('verify-extra-file-link');
+            if (extraUrl) {
+                extraLink.href = extraUrl;
+                extraBox.classList.remove('hidden');
+            } else {
+                extraBox.classList.add('hidden');
+            }
+
+            const shareUrl = getAthleteVerificationURL(athlete);
             document.getElementById('verify-share-link').value = shareUrl;
+
+            // Adjust Exit/Close button label based on External Scan Mode vs Admin Preview
+            const bottomBtn = document.getElementById('verify-bottom-close-btn');
+            const topBtn = document.getElementById('verify-top-close-btn');
+            if (isExternalScan || appState.isExternalScanMode) {
+                bottomBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i>Exit & Close';
+                bottomBtn.className = 'px-5 py-2 bg-brlred hover:bg-red-700 text-white text-xs font-extrabold rounded-xl shadow-brl-glow transition';
+                topBtn.title = 'Exit & Close';
+            } else {
+                bottomBtn.textContent = 'Done';
+                bottomBtn.className = 'px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition';
+                topBtn.title = 'Close';
+            }
 
             document.getElementById('verified-profile-modal').classList.remove('hidden');
         }
 
-        function closeVerifiedModal() {
+        function handleVerifiedModalExit() {
             document.getElementById('verified-profile-modal').classList.add('hidden');
+
+            if (appState.isExternalScanMode) {
+                // Keep admin dashboard strictly hidden & locked; attempt to close tab/window completely
+                document.body.classList.add('qr-scan-mode');
+                document.getElementById('external-session-closed-screen').classList.remove('hidden');
+                try {
+                    window.open('', '_self');
+                    window.close();
+                } catch (e) {}
+                return;
+            }
+
+            // Admin Dashboard mode: return cleanly to dashboard
             if (window.history.pushState) {
                 const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
                 window.history.pushState({path: cleanUrl}, '', cleanUrl);
@@ -2215,14 +2813,14 @@
 
 
         /* ========================================================================= */
-        /* BATCH & SINGLE PRINT ENGINE */
+        /* BATCH & SINGLE PRINT ENGINE (SUPPORTS FRONT & CUSTOMIZED BACK SIDES) */
         /* ========================================================================= */
 
         function triggerSinglePrint(athleteId) {
             const athlete = appState.athletes.find(a => a.id === athleteId);
             if (!athlete) return;
             renderPrintSection([athlete]);
-            setTimeout(() => window.print(), 200);
+            setTimeout(() => window.print(), 250);
         }
 
         function triggerBatchPrintSelected() {
@@ -2243,16 +2841,32 @@
         function renderPrintSection(athletesList) {
             const grid = document.getElementById('print-cards-grid');
             grid.innerHTML = '';
+            const includeBack = document.getElementById('print-include-back')?.checked !== false;
 
             athletesList.forEach(athlete => {
                 const calib = getEffectiveCalibration(athlete.id);
-                const wrapper = document.createElement('div');
-                wrapper.className = 'printable-card-wrapper flex items-center justify-center';
-                wrapper.innerHTML = generateFrontIDCardHTML(athlete, calib, 'print');
-                grid.appendChild(wrapper);
+                const sharedQrUrl = getAthleteVerificationURL(athlete);
+
+                // Front Card
+                const frontWrapper = document.createElement('div');
+                frontWrapper.className = 'printable-card-wrapper flex items-center justify-center';
+                frontWrapper.innerHTML = generateFrontIDCardHTML(athlete, calib, 'print');
+                grid.appendChild(frontWrapper);
 
                 if (calib.showQr !== false) {
-                    generateQRCodeElement(`print-qr-${athlete.id}`, getAthleteVerificationURL(athlete.id), calib.qrSize);
+                    generateQRCodeElement(`print-qr-${athlete.id}`, sharedQrUrl, calib.qrSize);
+                }
+
+                // Back Card (with identical Athlete Profile QR)
+                if (includeBack) {
+                    const backWrapper = document.createElement('div');
+                    backWrapper.className = 'printable-card-wrapper flex items-center justify-center';
+                    backWrapper.innerHTML = generateBackIDCardHTML(athlete, calib, 'print');
+                    grid.appendChild(backWrapper);
+
+                    if (calib.backShowQr !== false) {
+                        generateQRCodeElement(`print-qr-back-${athlete.id}`, sharedQrUrl, calib.backQrSize || 90);
+                    }
                 }
             });
         }
@@ -2284,6 +2898,11 @@
             document.getElementById('form-dob').value = athlete.dob || '';
             document.getElementById('form-position').value = athlete.position || '';
             document.getElementById('form-photo').value = athlete.photo || '';
+            document.getElementById('form-doc-psa').value = athlete.docPsa || '';
+            document.getElementById('form-doc-id').value = athlete.docId || '';
+            document.getElementById('form-doc-medical').value = athlete.docMedical || '';
+            document.getElementById('form-doc-waiver').value = athlete.docWaiver || '';
+            document.getElementById('form-doc-extra').value = athlete.docExtra || '';
 
             document.getElementById('athlete-form-modal').classList.remove('hidden');
         }
@@ -2306,7 +2925,12 @@
                 team: document.getElementById('form-team').value.trim(),
                 dob: document.getElementById('form-dob').value,
                 position: document.getElementById('form-position').value.trim(),
-                photo: document.getElementById('form-photo').value.trim()
+                photo: document.getElementById('form-photo').value.trim(),
+                docPsa: document.getElementById('form-doc-psa').value.trim(),
+                docId: document.getElementById('form-doc-id').value.trim(),
+                docMedical: document.getElementById('form-doc-medical').value.trim(),
+                docWaiver: document.getElementById('form-doc-waiver').value.trim(),
+                docExtra: document.getElementById('form-doc-extra').value.trim()
             };
 
             if (existingId) {
@@ -2361,17 +2985,14 @@
             box.innerHTML = message;
         }
 
-        // Convert standard Google Sheet share/edit/pubhtml links into direct CSV export URLs
         function normalizeGoogleSheetCsvUrl(rawUrl) {
             let url = rawUrl.trim();
             if (!url) return '';
 
-            // Handle /spreadsheets/d/e/2PACX-.../pubhtml
             if (url.includes('/spreadsheets/d/e/') && url.includes('/pubhtml')) {
                 return url.replace('/pubhtml', '/pub?output=csv');
             }
 
-            // Handle standard /spreadsheets/d/{SHEET_ID}/edit... or /view...
             const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
             if (match && match[1] && match[1] !== 'e') {
                 const sheetId = match[1];
@@ -2443,7 +3064,7 @@
             parseAndImportCSV(csvText);
         }
 
-        // RFC-4180 compliant CSV parser (handles quoted commas, escaped quotes, and CRLF)
+        // RFC-4180 compliant CSV parser
         function parseCSVRows(text) {
             const cleanText = text.replace(/^\uFEFF/, '');
             const rows = [];
@@ -2495,7 +3116,7 @@
             return rows.filter(r => r.some(cell => cell !== ''));
         }
 
-       function parseAndImportCSV(csvText) {
+        function parseAndImportCSV(csvText) {
             const rows = parseCSVRows(csvText);
             if (rows.length < 2) {
                 setSyncStatus('<i class="fa-solid fa-circle-exclamation mr-1.5"></i>Invalid CSV format: requires a header row and at least one athlete row.', 'error');
@@ -2505,12 +3126,10 @@
             const rawHeaders = rows[0].map(h => h.toLowerCase().trim());
 
             const findColIndex = (exactAliases, partialKeywords = [], excludeKeywords = []) => {
-                // 1. Exact header match first
                 for (const alias of exactAliases) {
                     const idx = rawHeaders.indexOf(alias);
                     if (idx !== -1) return idx;
                 }
-                // 2. Partial keyword match (ignoring excluded columns like email/parent/guardian)
                 for (const kw of partialKeywords) {
                     const idx = rawHeaders.findIndex(h =>
                         h.includes(kw) && !excludeKeywords.some(ex => h.includes(ex))
@@ -2538,7 +3157,12 @@
                 team: findColIndex(['team', 'team name', 'club'], ['team', 'club']),
                 dob: findColIndex(['dob', 'date of birth', 'birthdate', 'birthday'], ['date of birth', 'birthdate', 'birthday', 'dob']),
                 position: findColIndex(['position', 'role', 'field position'], ['position', 'role']),
-                photo: findColIndex(['photo', 'photo url', 'image', 'picture', 'avatar'], ['photo', 'picture', 'image', 'headshot', 'portrait'])
+                photo: findColIndex(['photo', 'photo url', 'image', 'picture', 'avatar'], ['photo', 'picture', 'image', 'headshot', 'portrait']),
+                docPsa: findColIndex(['docpsa', 'psa', 'birth certificate'], ['psa', 'birth cert']),
+                docId: findColIndex(['docid', 'school id', 'national id'], ['school id', 'national id', 'valid id']),
+                docMedical: findColIndex(['docmedical', 'medical', 'medical clearance'], ['medical']),
+                docWaiver: findColIndex(['docwaiver', 'waiver', 'parental waiver'], ['waiver']),
+                docExtra: findColIndex(['docextra', 'file link', 'uploaded file', 'document link', 'documents'], ['file', 'upload', 'document', 'attachment', 'folder'])
             };
 
             if (idxMap.name === -1 && idxMap.firstName === -1 && idxMap.lastName === -1) {
@@ -2560,7 +3184,6 @@
                     nameVal = `${getVal('firstName')} ${getVal('lastName')}`.trim();
                 }
 
-                // Skip empty rows or accidental email addresses
                 if (!nameVal || nameVal.includes('@')) continue;
 
                 importedAthletes.push({
@@ -2573,7 +3196,12 @@
                     team: getVal('team') || 'League Team',
                     dob: getVal('dob') || '',
                     position: getVal('position') || 'Athlete',
-                    photo: getVal('photo') || ''
+                    photo: getVal('photo') || '',
+                    docPsa: getVal('docPsa') || '',
+                    docId: getVal('docId') || '',
+                    docMedical: getVal('docMedical') || '',
+                    docWaiver: getVal('docWaiver') || '',
+                    docExtra: getVal('docExtra') || ''
                 });
             }
 
@@ -2600,9 +3228,9 @@
         }
 
         function loadSampleCSVTemplate() {
-            const template = `id,name,jersey,sport,division,charter,team,dob,position,photo
-BRLP-2026-8841,Kai Sotto Jr.,15,Baseball,16U,Manila Bay Charter,Manila Titans,2010-05-14,Pitcher / 1B,https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=400
-BRLP-2026-8847,Samantha Gomez,22,Softball,14U,Cebu Charter,Cebu Wave,2012-08-19,Pitcher,https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400`;
+            const template = `id,name,jersey,sport,division,charter,team,dob,position,photo,docPsa,docId,docMedical,docWaiver
+BRLP-2026-8841,Kai Sotto Jr.,15,Baseball,16U,Manila Bay Charter,Manila Titans,2010-05-14,Pitcher / 1B,https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=400,https://drive.google.com,https://drive.google.com,https://drive.google.com,https://drive.google.com
+BRLP-2026-8847,Samantha Gomez,22,Softball,14U,Cebu Charter,Cebu Wave,2012-08-19,Pitcher,https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400,https://drive.google.com,https://drive.google.com,https://drive.google.com,https://drive.google.com`;
             document.getElementById('csv-paste-input').value = template;
         }
 
@@ -2612,9 +3240,12 @@ BRLP-2026-8847,Samantha Gomez,22,Softball,14U,Cebu Charter,Cebu Wave,2012-08-19,
                 : appState.athletes;
 
             const esc = (val) => `"${String(val || '').replace(/"/g, '""')}"`;
-            let csv = 'id,name,jersey,sport,division,charter,team,dob,position,photo\n';
+            let csv = 'id,name,jersey,sport,division,charter,team,dob,position,photo,docPsa,docId,docMedical,docWaiver,docExtra\n';
             list.forEach(a => {
-                csv += [a.id, a.name, a.jersey, a.sport, a.division, a.charter, a.team, a.dob, a.position, a.photo].map(esc).join(',') + '\n';
+                csv += [
+                    a.id, a.name, a.jersey, a.sport, a.division, a.charter, a.team, a.dob, a.position, a.photo,
+                    a.docPsa, a.docId, a.docMedical, a.docWaiver, a.docExtra
+                ].map(esc).join(',') + '\n';
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
