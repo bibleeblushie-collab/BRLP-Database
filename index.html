@@ -53,7 +53,7 @@
             display: none !important;
         }
 
-        /* External QR Scan Mode: Completely hide Admin Dashboard */
+        /* External QR Scan Mode: Completely hide Admin Dashboard so QR opens directly to Athlete Profile */
         body.qr-scan-mode header,
         body.qr-scan-mode main,
         body.qr-scan-mode footer,
@@ -194,6 +194,20 @@
             </div>
         </div>
     </header>
+
+    <!-- LOCAL HOSTING URL NOTICE BANNER (SHOWN ONLY WHEN OPENED AS LOCAL FILE WITHOUT HOSTED URL) -->
+    <div id="local-portal-url-banner" class="hidden bg-amber-950/80 border-b border-amber-500/40 px-4 py-2.5 no-print admin-only">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+            <div class="flex items-center space-x-2 text-amber-200">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                <span><strong>Local File Mode:</strong> Enter your live hosted portal web URL so smartphone cameras go directly to the athlete's profile when scanning QR codes:</span>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                <input type="url" id="banner-portal-url-input" placeholder="https://your-portal-domain.com/index.html" class="flex-1 sm:w-72 bg-darkbg border border-amber-500/40 rounded-lg px-2.5 py-1 text-white font-mono text-[11px] focus:outline-none focus:border-amber-400">
+                <button onclick="saveBannerPortalUrl()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-lg text-[11px] flex-shrink-0 transition">Save URL</button>
+            </div>
+        </div>
+    </div>
 
     <!-- DASHBOARD MAIN BODY (ADMIN ONLY) -->
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 no-print admin-only">
@@ -369,6 +383,9 @@
                     The official BRLP athlete verification view has been closed. You may now safely close this browser tab or return to your camera scanner.
                 </p>
             </div>
+            <button onclick="reopenScannedAthleteProfile()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold rounded-xl border border-slate-700 transition">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Reopen Athlete Profile
+            </button>
             <div class="pt-2 border-t border-cardborder/60 text-[11px] text-gray-500 font-mono">
                 Babe Ruth League Philippines • Public Verification Portal
             </div>
@@ -644,7 +661,7 @@
                         </div>
                     </div>
 
-                    <!-- TAB 3: FRONT QR CODE MANUAL POSITIONING -->
+                    <!-- TAB 3: FRONT QR CODE MANUAL POSITIONING & LINK SETTINGS -->
                     <div id="tab-content-qr" class="space-y-4 hidden">
                         <div class="flex items-center justify-between">
                             <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Front QR Code Manual Position & Size</h4>
@@ -685,6 +702,24 @@
                                     <span id="val-qrSize" class="text-brlred font-mono font-bold">70px</span>
                                 </div>
                                 <input type="range" id="calib-qrSize" min="40" max="130" value="70" oninput="updateCalibrationFromUI()" class="w-full accent-brlred">
+                            </div>
+                        </div>
+
+                        <!-- Verification Portal Base URL Configuration -->
+                        <div class="bg-darkbg p-4 rounded-2xl border border-cardborder space-y-2.5 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-white"><i class="fa-solid fa-link text-emerald-400 mr-1.5"></i>QR Verification Portal URL</span>
+                                <span id="qr-host-mode-badge" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">HTTPS Ready</span>
+                            </div>
+                            <p class="text-[11px] text-gray-400">
+                                Automatically uses your live hosted page URL when online so scanning opens the athlete profile directly. If running locally, paste your hosted URL below:
+                            </p>
+                            <div class="flex space-x-2">
+                                <input type="url" id="calib-portal-url" placeholder="https://your-hosted-portal.com/index.html" oninput="updatePortalBaseUrl(this.value)" class="flex-1 bg-slate-900 border border-cardborder rounded-xl px-3 py-2 text-white font-mono text-[11px] focus:border-emerald-400 focus:outline-none">
+                                <button type="button" onclick="testCurrentPreviewQrLink()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] flex items-center space-x-1 flex-shrink-0 transition">
+                                    <span>Test Link</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -895,7 +930,7 @@
     </div>
 
 
-    <!-- 2. OFFICIAL VERIFIED ATHLETE PROFILE MODAL -->
+    <!-- 2. OFFICIAL VERIFIED ATHLETE PROFILE MODAL (OPENS DIRECTLY ON QR SCAN) -->
     <div id="verified-profile-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
         <div class="bg-cardbg border border-brlred/50 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-brl-glow overflow-hidden relative">
             
@@ -965,41 +1000,44 @@
                     </div>
                 </div>
 
-                <!-- CLICKABLE COMPLIANCE CHECKLIST & UPLOADED FILES -->
+                <!-- CLICKABLE COMPLIANCE CHECKLIST & ATTACHED FILES -->
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center space-x-2">
                             <i class="fa-solid fa-file-shield text-emerald-400"></i>
-                            <span>BRLP Official Compliance & Uploaded Files</span>
+                            <span>Official Compliance & Attached Files</span>
                         </h4>
-                        <span class="text-[10px] text-cyan-400 font-semibold">Click any linked file to inspect</span>
+                        <span class="text-[10px] text-cyan-400 font-semibold"><i class="fa-solid fa-hand-pointer mr-1"></i>Tap any file to open</span>
                     </div>
 
                     <div id="verify-compliance-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <!-- Dynamically rendered with clickable links -->
+                        <!-- Dynamically rendered with clickable file links -->
                     </div>
 
-                    <!-- Additional Uploaded File Link Banner (if attached) -->
-                    <div id="verify-extra-file-box" class="hidden mt-3 bg-blue-950/40 border border-blue-500/40 p-3 rounded-xl flex items-center justify-between text-xs">
-                        <div class="flex items-center space-x-2 truncate mr-3">
-                            <i class="fa-solid fa-folder-open text-cyan-400"></i>
-                            <span class="font-bold text-white truncate">Uploaded Supporting File / Folder</span>
+                    <!-- Additional Attached Files List (Supports multiple uploaded files & links) -->
+                    <div id="verify-attached-files-container" class="hidden mt-3 space-y-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Additional Attached Documents</span>
+                        <div id="verify-attached-files-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                            <!-- Dynamically rendered clickable attached file cards -->
                         </div>
-                        <a id="verify-extra-file-link" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[11px] font-bold flex-shrink-0 flex items-center space-x-1 transition">
-                            <span>Open File</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                        </a>
                     </div>
                 </div>
 
-                <div class="bg-darkbg border border-cardborder p-3.5 rounded-xl flex items-center justify-between text-xs">
-                    <div class="truncate mr-3">
-                        <span class="text-[10px] text-gray-500 block uppercase font-bold">Verification URL Link</span>
+                <!-- Direct QR Profile URL Box -->
+                <div class="bg-darkbg border border-cardborder p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex-1 min-w-[200px] truncate mr-2">
+                        <span class="text-[10px] text-gray-500 block uppercase font-bold">Direct QR Profile URL</span>
                         <input type="text" id="verify-share-link" readonly class="bg-transparent text-gray-300 w-full truncate focus:outline-none font-mono text-[11px]">
                     </div>
-                    <button onclick="copyVerificationLink()" class="px-3.5 py-1.5 bg-brlred hover:bg-red-700 text-white rounded-lg text-xs font-bold flex-shrink-0 transition">
-                        <i class="fa-solid fa-copy mr-1"></i> Copy Link
-                    </button>
+                    <div class="flex items-center space-x-2 flex-shrink-0">
+                        <a id="verify-open-link-btn" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center space-x-1 transition">
+                            <span>Open Direct URL</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                        <button onclick="copyVerificationLink()" class="px-3.5 py-1.5 bg-brlred hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">
+                            <i class="fa-solid fa-copy mr-1"></i> Copy Link
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1011,9 +1049,34 @@
     </div>
 
 
+    <!-- BUILT-IN ATTACHED FILE VIEWER MODAL (FOR EMBEDDED/UPLOADED FILES ON MOBILE & DESKTOP) -->
+    <div id="file-viewer-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-cardbg border border-cyan-500/40 rounded-3xl max-w-4xl w-full h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-cardborder bg-darkbg flex items-center justify-between gap-3">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <i class="fa-solid fa-file-lines text-cyan-400 text-lg flex-shrink-0"></i>
+                    <h3 id="file-viewer-title" class="font-header font-bold text-sm text-white truncate">Attached Document</h3>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    <a id="file-viewer-download-btn" href="#" download="BRLP_Document" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Download / Open</span>
+                    </a>
+                    <button onclick="closeFileViewerModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="file-viewer-body" class="flex-1 bg-slate-950 flex items-center justify-center overflow-auto p-2">
+                <!-- Embedded iframe or image rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+
     <!-- 3. ADD / EDIT ATHLETE MODAL -->
     <div id="athlete-form-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print admin-only">
-        <div class="bg-cardbg border border-cardborder rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+        <div class="bg-cardbg border border-cardborder rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-cardborder flex items-center justify-between">
                 <h3 id="form-modal-title" class="font-header font-bold text-lg text-white">Add New Athlete Profile</h3>
                 <button onclick="closeAthleteFormModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-gray-400 hover:text-white flex items-center justify-center">
@@ -1082,32 +1145,83 @@
                     <span class="text-[10px] text-gray-500 mt-0.5 block">Supports direct image URLs or Google Drive share links</span>
                 </div>
 
-                <!-- Uploaded Compliance Document Links -->
+                <!-- Attached Compliance & Supporting Files (Links or Direct File Attachment) -->
                 <div class="border-t border-cardborder pt-3 space-y-3">
-                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider block">
-                        <i class="fa-solid fa-link mr-1"></i> Uploaded Document File Links (Clickable on QR Profile)
-                    </span>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                            <i class="fa-solid fa-paperclip mr-1"></i> Attached Document Files (Clickable on QR Scan)
+                        </span>
+                        <span class="text-[10px] text-gray-400">Paste cloud/Drive URL or attach a file directly</span>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="text-gray-400 block font-semibold mb-1">PSA Birth Certificate URL</label>
-                            <input type="url" id="form-doc-psa" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-gray-400 font-semibold">PSA Birth Certificate</label>
+                                <label class="text-[10px] text-cyan-400 hover:underline cursor-pointer font-bold">
+                                    <i class="fa-solid fa-upload mr-0.5"></i>Attach File
+                                    <input type="file" accept=".pdf,image/*,.doc,.docx" onchange="handleDocFileAttach(event, 'form-doc-psa')" class="hidden">
+                                </label>
+                            </div>
+                            <input type="text" id="form-doc-psa" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
                         </div>
+
                         <div>
-                            <label class="text-gray-400 block font-semibold mb-1">National / School ID URL</label>
-                            <input type="url" id="form-doc-id" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-gray-400 font-semibold">National / School ID</label>
+                                <label class="text-[10px] text-cyan-400 hover:underline cursor-pointer font-bold">
+                                    <i class="fa-solid fa-upload mr-0.5"></i>Attach File
+                                    <input type="file" accept=".pdf,image/*,.doc,.docx" onchange="handleDocFileAttach(event, 'form-doc-id')" class="hidden">
+                                </label>
+                            </div>
+                            <input type="text" id="form-doc-id" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
                         </div>
+
                         <div>
-                            <label class="text-gray-400 block font-semibold mb-1">Medical Clearance 2026 URL</label>
-                            <input type="url" id="form-doc-medical" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-gray-400 font-semibold">Medical Clearance 2026</label>
+                                <label class="text-[10px] text-cyan-400 hover:underline cursor-pointer font-bold">
+                                    <i class="fa-solid fa-upload mr-0.5"></i>Attach File
+                                    <input type="file" accept=".pdf,image/*,.doc,.docx" onchange="handleDocFileAttach(event, 'form-doc-medical')" class="hidden">
+                                </label>
+                            </div>
+                            <input type="text" id="form-doc-medical" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
                         </div>
+
                         <div>
-                            <label class="text-gray-400 block font-semibold mb-1">Parental Waiver URL</label>
-                            <input type="url" id="form-doc-waiver" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-gray-400 font-semibold">Parental Waiver</label>
+                                <label class="text-[10px] text-cyan-400 hover:underline cursor-pointer font-bold">
+                                    <i class="fa-solid fa-upload mr-0.5"></i>Attach File
+                                    <input type="file" accept=".pdf,image/*,.doc,.docx" onchange="handleDocFileAttach(event, 'form-doc-waiver')" class="hidden">
+                                </label>
+                            </div>
+                            <input type="text" id="form-doc-waiver" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
                         </div>
                     </div>
+
                     <div>
-                        <label class="text-gray-400 block font-semibold mb-1">Additional Uploaded File / Drive Folder URL</label>
-                        <input type="url" id="form-doc-extra" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-gray-400 font-semibold">Additional Attached File / Folder URL</label>
+                            <label class="text-[10px] text-cyan-400 hover:underline cursor-pointer font-bold">
+                                <i class="fa-solid fa-upload mr-0.5"></i>Attach File
+                                <input type="file" accept=".pdf,image/*,.doc,.docx" onchange="handleDocFileAttach(event, 'form-doc-extra')" class="hidden">
+                            </label>
+                        </div>
+                        <input type="text" id="form-doc-extra" placeholder="https://drive.google.com/..." class="w-full bg-darkbg border border-cardborder rounded-xl px-3 py-2 text-white focus:border-brlred focus:outline-none">
+                    </div>
+
+                    <!-- Extra Custom Attachments List -->
+                    <div class="bg-darkbg/70 border border-cardborder rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-gray-300">Extra Named Attachments</span>
+                            <button type="button" onclick="addAttachmentRow()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg text-[10px] font-bold transition">
+                                <i class="fa-solid fa-plus mr-1"></i>Add Attachment
+                            </button>
+                        </div>
+                        <div id="form-attachments-list" class="space-y-2">
+                            <!-- Dynamic attachment rows -->
+                        </div>
                     </div>
                 </div>
 
@@ -1170,7 +1284,7 @@
 
                 <!-- Import Mode & Expected Columns -->
                 <div class="bg-darkbg p-3 rounded-xl border border-cardborder flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-400">
-                    <span>Auto-maps name, jersey, sport, division, charter, team, dob, position, photo & uploaded file links</span>
+                    <span>Auto-maps name, jersey, sport, division, charter, team, dob, position, photo & attached file links</span>
                     <label class="flex items-center space-x-2 text-gray-200 font-semibold cursor-pointer">
                         <input type="checkbox" id="csv-replace-all" class="rounded bg-slate-900 border-cardborder text-brlred">
                         <span>Replace existing roster</span>
@@ -1273,10 +1387,11 @@
          * ATHLETE REGISTRY & SMART ID CARD GENERATOR ENGINE
          */
 
-        const STORAGE_KEY_ATHLETES = 'brlp_2026_athletes_v4';
-        const STORAGE_KEY_CALIBRATION = 'brlp_2026_calibrations_v4';
+        const STORAGE_KEY_ATHLETES = 'brlp_2026_athletes_v5';
+        const STORAGE_KEY_CALIBRATION = 'brlp_2026_calibrations_v5';
         const STORAGE_KEY_TEMPLATE_BASE64 = 'brlp_custom_template_base64';
-        const STORAGE_KEY_TEMPLATE_CONFIG = 'brlp_custom_template_config_v4';
+        const STORAGE_KEY_TEMPLATE_CONFIG = 'brlp_custom_template_config_v5';
+        const STORAGE_KEY_PORTAL_URL = 'brlp_portal_base_url_v1';
 
         // DEFAULT FALLBACK SVG TEMPLATE GRAPHIC WHEN NO USER IMAGE IS UPLOADED
         const DEFAULT_FALLBACK_TEMPLATE_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -1295,7 +1410,7 @@
             </svg>
         `)}`;
 
-        // SAMPLE ATHLETES DATABASE
+        // SAMPLE ATHLETES DATABASE (With clickable attached compliance files)
         const SAMPLE_ATHLETES = [
             {
                 id: 'BRLP-2026-8841',
@@ -1312,7 +1427,8 @@
                 docId: 'https://drive.google.com',
                 docMedical: 'https://drive.google.com',
                 docWaiver: 'https://drive.google.com',
-                docExtra: ''
+                docExtra: 'https://drive.google.com',
+                attachments: []
             },
             {
                 id: 'BRLP-2026-8842',
@@ -1325,11 +1441,12 @@
                 dob: '2008-09-22',
                 position: 'Shortstop',
                 photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
-                docPsa: '',
-                docId: '',
-                docMedical: '',
-                docWaiver: '',
-                docExtra: ''
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: '',
+                attachments: []
             },
             {
                 id: 'BRLP-2026-8843',
@@ -1342,11 +1459,12 @@
                 dob: '2012-03-11',
                 position: 'Catcher',
                 photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-                docPsa: '',
-                docId: '',
-                docMedical: '',
-                docWaiver: '',
-                docExtra: ''
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: '',
+                attachments: []
             },
             {
                 id: 'BRLP-2026-8844',
@@ -1359,11 +1477,12 @@
                 dob: '2014-08-04',
                 position: 'Outfielder',
                 photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
-                docPsa: '',
-                docId: '',
-                docMedical: '',
-                docWaiver: '',
-                docExtra: ''
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: '',
+                attachments: []
             },
             {
                 id: 'BRLP-2026-8845',
@@ -1376,11 +1495,12 @@
                 dob: '2010-11-30',
                 position: 'Third Base',
                 photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-                docPsa: '',
-                docId: '',
-                docMedical: '',
-                docWaiver: '',
-                docExtra: ''
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: '',
+                attachments: []
             },
             {
                 id: 'BRLP-2026-8846',
@@ -1393,11 +1513,12 @@
                 dob: '2008-01-19',
                 position: 'Pitcher',
                 photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
-                docPsa: '',
-                docId: '',
-                docMedical: '',
-                docWaiver: '',
-                docExtra: ''
+                docPsa: 'https://drive.google.com',
+                docId: 'https://drive.google.com',
+                docMedical: 'https://drive.google.com',
+                docWaiver: 'https://drive.google.com',
+                docExtra: '',
+                attachments: []
             }
         ];
 
@@ -1474,10 +1595,12 @@
                 fit: 'cover',
                 opacity: 100
             },
+            portalBaseUrl: '',
             calibratorTarget: 'GLOBAL',
             calibratorPreviewSide: 'front',
             viewMode: 'grid',
-            isExternalScanMode: false
+            isExternalScanMode: false,
+            lastScannedContext: null
         };
 
         // APPLICATION INITIALIZATION
@@ -1485,6 +1608,7 @@
             loadStateFromStorage();
             const isPublicScan = checkURLForVerification();
             if (!isPublicScan) {
+                checkLocalPortalBanner();
                 populateCharterFilter();
                 renderGallery();
                 updateStats();
@@ -1493,10 +1617,39 @@
             window.addEventListener('hashchange', checkURLForVerification);
         });
 
+        function isLocalEnvironment() {
+            const proto = window.location.protocol;
+            const origin = window.location.origin;
+            return (proto !== 'http:' && proto !== 'https:') || !origin || origin === 'null' || window.location.href.startsWith('blob:');
+        }
+
+        function checkLocalPortalBanner() {
+            const banner = document.getElementById('local-portal-url-banner');
+            if (!banner) return;
+            if (isLocalEnvironment() && !appState.portalBaseUrl) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function saveBannerPortalUrl() {
+            const input = document.getElementById('banner-portal-url-input');
+            if (!input || !input.value.trim()) {
+                showToastNotification("Please enter your hosted portal web URL.");
+                return;
+            }
+            updatePortalBaseUrl(input.value.trim());
+            checkLocalPortalBanner();
+            renderGallery();
+            showToastNotification("Live Portal URL saved! All QR codes now link directly to your athlete profiles.");
+        }
+
         // HELPER: Normalize Google Drive Links into Direct Viewable Image URLs
         function normalizeDriveImageUrl(url) {
             if (!url) return '';
             const trimmed = url.trim();
+            if (trimmed.startsWith('data:image')) return trimmed;
             const matchId = trimmed.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)([a-zA-Z0-9_-]+)/);
             if (matchId && matchId[1]) {
                 return `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w1000`;
@@ -1530,7 +1683,7 @@
         // LOCAL STORAGE
         function loadStateFromStorage() {
             try {
-                const storedAthletes = localStorage.getItem(STORAGE_KEY_ATHLETES);
+                const storedAthletes = localStorage.getItem(STORAGE_KEY_ATHLETES) || localStorage.getItem('brlp_2026_athletes_v4');
                 if (storedAthletes) {
                     appState.athletes = JSON.parse(storedAthletes);
                 } else {
@@ -1538,7 +1691,7 @@
                     saveAthletesToStorage();
                 }
 
-                const storedCalib = localStorage.getItem(STORAGE_KEY_CALIBRATION);
+                const storedCalib = localStorage.getItem(STORAGE_KEY_CALIBRATION) || localStorage.getItem('brlp_2026_calibrations_v4');
                 if (storedCalib) {
                     const parsed = JSON.parse(storedCalib);
                     appState.calibrations = {
@@ -1548,12 +1701,17 @@
                 }
 
                 const storedBase64 = localStorage.getItem(STORAGE_KEY_TEMPLATE_BASE64);
-                const storedConfig = localStorage.getItem(STORAGE_KEY_TEMPLATE_CONFIG);
+                const storedConfig = localStorage.getItem(STORAGE_KEY_TEMPLATE_CONFIG) || localStorage.getItem('brlp_custom_template_config_v4');
                 if (storedConfig) {
                     appState.customTemplate = { ...appState.customTemplate, ...JSON.parse(storedConfig) };
                 }
                 if (storedBase64) {
                     appState.customTemplate.url = storedBase64;
+                }
+
+                const storedPortalUrl = localStorage.getItem(STORAGE_KEY_PORTAL_URL);
+                if (storedPortalUrl) {
+                    appState.portalBaseUrl = storedPortalUrl;
                 }
             } catch (e) {
                 console.error("Storage load error:", e);
@@ -1563,7 +1721,12 @@
         }
 
         function saveAthletesToStorage() {
-            localStorage.setItem(STORAGE_KEY_ATHLETES, JSON.stringify(appState.athletes));
+            try {
+                localStorage.setItem(STORAGE_KEY_ATHLETES, JSON.stringify(appState.athletes));
+            } catch (e) {
+                console.warn("Storage write error for athletes:", e);
+                showToastNotification("Storage limit reached. Try linking large files via Google Drive URLs instead of uploading raw files.");
+            }
         }
 
         function saveCalibrationsToStorage() {
@@ -1697,6 +1860,7 @@
                     const isSelected = appState.selectedAthleteIds.has(athlete.id);
                     const hasOverride = !!(appState.calibrations.athleteOverrides && appState.calibrations.athleteOverrides[athlete.id]);
                     const photoUrl = normalizeDriveImageUrl(athlete.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=0b1d3a&color=ffffff&size=200`;
+                    const fileCount = countAthleteAttachedFiles(athlete);
 
                     return `
                     <div class="bg-cardbg border ${isSelected ? 'border-brlred shadow-brl-glow' : 'border-cardborder'} rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:border-slate-600 relative group">
@@ -1725,6 +1889,7 @@
                                 <p class="text-xs text-cyan-400 font-bold">${athlete.division} • ${athlete.sport}</p>
                                 <p class="text-[11px] text-gray-300 truncate mt-0.5">${athlete.position || 'Athlete'}</p>
                                 <p class="text-[10px] text-gray-400 truncate">${athlete.charter || 'National Charter'}</p>
+                                <p class="text-[10px] text-emerald-400/90 mt-0.5"><i class="fa-solid fa-paperclip mr-1"></i>${fileCount} attached file(s)</p>
                             </div>
                         </div>
 
@@ -1746,7 +1911,7 @@
                                 <span>Print ID</span>
                             </button>
                             <div class="flex items-center space-x-3">
-                                <button onclick="openEditAthleteModal('${athlete.id}')" class="hover:text-white" title="Edit Athlete"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="openEditAthleteModal('${athlete.id}')" class="hover:text-white" title="Edit Athlete & Files"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button onclick="deleteAthlete('${athlete.id}')" class="hover:text-red-400" title="Delete Athlete"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
@@ -1785,6 +1950,19 @@
             }
 
             document.getElementById('selected-count').textContent = appState.selectedAthleteIds.size;
+        }
+
+        function countAthleteAttachedFiles(athlete) {
+            let count = 0;
+            if (normalizeClickableFileUrl(athlete.docPsa)) count++;
+            if (normalizeClickableFileUrl(athlete.docId)) count++;
+            if (normalizeClickableFileUrl(athlete.docMedical)) count++;
+            if (normalizeClickableFileUrl(athlete.docWaiver)) count++;
+            if (normalizeClickableFileUrl(athlete.docExtra)) count++;
+            if (Array.isArray(athlete.attachments)) {
+                count += athlete.attachments.filter(att => normalizeClickableFileUrl(att.url)).length;
+            }
+            return count;
         }
 
         function applyFilters() {
@@ -1827,7 +2005,7 @@
 
 
         /* ========================================================================= */
-        /* FRAMELESS ID CARD RENDER ENGINE (FRONT & MODIFIABLE BACK + IDENTICAL QR) */
+        /* FRAMELESS ID CARD RENDER ENGINE & DIRECT ATHLETE QR URL GENERATOR */
         /* ========================================================================= */
 
         function renderLiveCalibratorPreview() {
@@ -1854,50 +2032,103 @@
             }
         }
 
-        // Encode portable athlete profile + clickable file links into the QR URL so external devices see full details
-        function encodePortableProfilePayload(athlete) {
-            try {
-                const payload = {
-                    i: athlete.id,
-                    n: athlete.name,
-                    j: athlete.jersey,
-                    s: athlete.sport,
-                    d: athlete.division,
-                    c: athlete.charter,
-                    t: athlete.team,
-                    b: athlete.dob,
-                    r: athlete.position
-                };
-                if (athlete.photo && athlete.photo.startsWith('http') && athlete.photo.length < 240) {
-                    payload.ph = athlete.photo;
-                }
-                if (athlete.docPsa) payload.p1 = athlete.docPsa;
-                if (athlete.docId) payload.p2 = athlete.docId;
-                if (athlete.docMedical) payload.p3 = athlete.docMedical;
-                if (athlete.docWaiver) payload.p4 = athlete.docWaiver;
-                if (athlete.docExtra) payload.px = athlete.docExtra;
-
-                const jsonStr = JSON.stringify(payload);
-                const bytes = new TextEncoder().encode(jsonStr);
-                let bin = '';
-                bytes.forEach(b => bin += String.fromCharCode(b));
-                return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            } catch (e) {
-                return '';
+        // Resolve the active web page URL so scanning the QR code opens this exact portal directly
+        function getBasePortalUrl() {
+            const customUrl = (appState.portalBaseUrl || '').trim();
+            if (customUrl) {
+                const normalized = /^https?:\/\//i.test(customUrl) ? customUrl : 'https://' + customUrl;
+                return normalized.split('?')[0].split('#')[0];
             }
+            if (!isLocalEnvironment()) {
+                return window.location.origin + window.location.pathname;
+            }
+            // Fallback when running as a local offline file without custom URL set
+            return window.location.href.split('?')[0].split('#')[0];
         }
 
-        function decodePortableProfilePayload(encodedStr) {
+        // Compact URL shortening helpers for QR embedding
+        function shortenUrlForQr(url) {
+            const clean = normalizeClickableFileUrl(url);
+            if (!clean || clean.startsWith('data:')) return '';
+            if (clean.startsWith('https://')) return '~' + clean.slice(8);
+            if (clean.startsWith('http://')) return '!' + clean.slice(7);
+            return clean;
+        }
+
+        function expandUrlFromQr(shortUrl) {
+            if (!shortUrl) return '';
+            if (shortUrl.startsWith('~')) return 'https://' + shortUrl.slice(1);
+            if (shortUrl.startsWith('!')) return 'http://' + shortUrl.slice(1);
+            return normalizeClickableFileUrl(shortUrl);
+        }
+
+        function toUrlSafeBase64(str) {
+            const bytes = new TextEncoder().encode(str);
+            let bin = '';
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function fromUrlSafeBase64(b64Url) {
+            let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new TextDecoder().decode(bytes);
+        }
+
+        // Encodes full athlete profile + all attached document URLs into a compact QR payload
+        function encodePortableProfilePayload(athlete, includePhoto = true) {
+            const payload = {
+                i: athlete.id || '',
+                n: athlete.name || '',
+                j: athlete.jersey || '',
+                s: athlete.sport || '',
+                d: athlete.division || '',
+                c: athlete.charter || '',
+                t: athlete.team || '',
+                b: athlete.dob || '',
+                r: athlete.position || ''
+            };
+
+            if (includePhoto) {
+                const ph = shortenUrlForQr(athlete.photo);
+                if (ph) payload.ph = ph;
+            }
+
+            const p1 = shortenUrlForQr(athlete.docPsa);
+            const p2 = shortenUrlForQr(athlete.docId);
+            const p3 = shortenUrlForQr(athlete.docMedical);
+            const p4 = shortenUrlForQr(athlete.docWaiver);
+            const px = shortenUrlForQr(athlete.docExtra);
+
+            if (p1) payload.p1 = p1;
+            if (p2) payload.p2 = p2;
+            if (p3) payload.p3 = p3;
+            if (p4) payload.p4 = p4;
+            if (px) payload.px = px;
+
+            if (Array.isArray(athlete.attachments) && athlete.attachments.length > 0) {
+                const shortAtts = athlete.attachments
+                    .map(att => ({ n: att.name || 'Document', u: shortenUrlForQr(att.url) }))
+                    .filter(att => att.u);
+                if (shortAtts.length > 0) payload.at = shortAtts;
+            }
+
+            return toUrlSafeBase64(JSON.stringify(payload));
+        }
+
+        function decodePortableProfilePayload(encodedStr, fallbackId = '') {
             try {
-                let b64 = encodedStr.replace(/-/g, '+').replace(/_/g, '/');
-                while (b64.length % 4) b64 += '=';
-                const bin = atob(b64);
-                const bytes = new Uint8Array(bin.length);
-                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-                const jsonStr = new TextDecoder().decode(bytes);
+                const jsonStr = fromUrlSafeBase64(encodedStr);
                 const p = JSON.parse(jsonStr);
+                const attachments = Array.isArray(p.at)
+                    ? p.at.map(item => ({ name: item.n || 'Attached File', url: expandUrlFromQr(item.u) })).filter(item => item.url)
+                    : [];
+
                 return {
-                    id: p.i || '',
+                    id: p.i || fallbackId || '',
                     name: p.n || 'Verified Athlete',
                     jersey: p.j || '00',
                     sport: p.s || 'Baseball',
@@ -1906,28 +2137,61 @@
                     team: p.t || 'Roster Team',
                     dob: p.b || '',
                     position: p.r || 'Athlete',
-                    photo: p.ph || '',
-                    docPsa: p.p1 || '',
-                    docId: p.p2 || '',
-                    docMedical: p.p3 || '',
-                    docWaiver: p.p4 || '',
-                    docExtra: p.px || ''
+                    photo: expandUrlFromQr(p.ph || ''),
+                    docPsa: expandUrlFromQr(p.p1 || ''),
+                    docId: expandUrlFromQr(p.p2 || ''),
+                    docMedical: expandUrlFromQr(p.p3 || ''),
+                    docWaiver: expandUrlFromQr(p.p4 || ''),
+                    docExtra: expandUrlFromQr(p.px || ''),
+                    attachments
                 };
             } catch (e) {
                 return null;
             }
         }
 
+        function decodeCompactProfilePayload(vStr, athleteId) {
+            try {
+                const parts = vStr.split('|');
+                return {
+                    id: athleteId || '',
+                    name: parts[0] || 'Verified Athlete',
+                    jersey: parts[1] || '00',
+                    sport: parts[2] || 'Baseball',
+                    division: parts[3] || '16U',
+                    charter: parts[4] || 'BRL Philippines',
+                    team: parts[5] || 'Roster Team',
+                    dob: parts[6] || '',
+                    position: parts[7] || 'Athlete'
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Generates the direct QR link that opens straight to this athlete's profile & attached files
         function getAthleteVerificationURL(athleteOrId) {
             const athlete = typeof athleteOrId === 'string'
-                ? (appState.athletes.find(a => a.id === athleteOrId) || { id: athleteOrId })
+                ? (appState.athletes.find(a => a.id === athleteOrId) || SAMPLE_ATHLETES.find(a => a.id === athleteOrId) || { id: athleteOrId })
                 : athleteOrId;
-            const baseUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(athlete.id);
-            const encoded = encodePortableProfilePayload(athlete);
-            if (encoded && (baseUrl.length + encoded.length + 4) < 950) {
-                return `${baseUrl}&p=${encoded}`;
+            const baseUrl = getBasePortalUrl();
+            const separator = baseUrl.includes('?') ? '&' : '?';
+            const idParam = `id=${encodeURIComponent(athlete.id || '')}`;
+
+            // Encode full athlete data + clickable attached file URLs
+            let encoded = encodePortableProfilePayload(athlete, true);
+            let fullUrl = `${baseUrl}${separator}${idParam}&p=${encoded}#verify=${encodeURIComponent(athlete.id || '')}`;
+
+            // Keep QR payload well within crisp scan density (< 1100 chars)
+            if (fullUrl.length > 1100) {
+                encoded = encodePortableProfilePayload(athlete, false);
+                fullUrl = `${baseUrl}${separator}${idParam}&p=${encoded}#verify=${encodeURIComponent(athlete.id || '')}`;
             }
-            return baseUrl;
+
+            if (fullUrl.length <= 1350) {
+                return fullUrl;
+            }
+            return `${baseUrl}${separator}${idParam}#verify=${encodeURIComponent(athlete.id || '')}`;
         }
 
         /**
@@ -1997,10 +2261,10 @@
                     </span>
                 </div>
 
-                <!-- LAYER 3 (z-30): MANUALLY POSITIONED QR CODE -->
+                <!-- LAYER 3 (z-30): MANUALLY POSITIONED QR CODE WITH WHITE QUIET ZONE -->
                 ${calib.showQr !== false ? `
                 <div data-drag-target="qr" class="absolute ${dragClass}"
-                     style="z-index: 30; left: 50%; top: 412px; transform: translate(calc(-50% + ${calib.qrX || 0}px), ${calib.qrY || 0}px);">
+                     style="z-index: 30; left: 50%; top: 412px; transform: translate(calc(-50% + ${calib.qrX || 0}px), ${calib.qrY || 0}px); background: #ffffff; padding: 4px; border-radius: 5px; box-shadow: 0 1px 4px rgba(0,0,0,0.18);">
                     <div id="${context}-qr-${athlete.id}" style="width: ${calib.qrSize || 70}px; height: ${calib.qrSize || 70}px;"></div>
                 </div>
                 ` : ''}
@@ -2102,30 +2366,66 @@
             `;
         }
 
-        // QR CODE RENDER UTILITY
+        // HIGH-DPI CRISP QR CODE RENDER UTILITY
         function generateQRCodeElement(elementId, textUrl, size = 70) {
-            setTimeout(() => {
+            const renderQR = () => {
                 const el = document.getElementById(elementId);
                 if (!el) return;
                 el.innerHTML = '';
-                
+                el.style.backgroundColor = '#ffffff';
+
+                const appendFallbackImg = () => {
+                    const img = document.createElement('img');
+                    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&data=${encodeURIComponent(textUrl)}`;
+                    img.alt = 'QR Verification Code';
+                    img.className = 'pointer-events-none';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.display = 'block';
+                    img.style.imageRendering = 'pixelated';
+                    el.appendChild(img);
+                };
+
                 try {
                     if (typeof QRCode !== 'undefined') {
-                        new QRCode(el, {
+                        const tempContainer = document.createElement('div');
+                        new QRCode(tempContainer, {
                             text: textUrl,
-                            width: size,
-                            height: size,
+                            width: 300,
+                            height: 300,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
-                            correctLevel: textUrl.length > 350 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M
+                            correctLevel: QRCode.CorrectLevel.L
                         });
+
+                        const canvas = tempContainer.querySelector('canvas');
+                        if (canvas) {
+                            const img = document.createElement('img');
+                            img.src = canvas.toDataURL('image/png');
+                            img.alt = 'QR Verification Code';
+                            img.className = 'pointer-events-none';
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style.display = 'block';
+                            img.style.imageRendering = 'pixelated';
+                            el.appendChild(img);
+                        } else {
+                            appendFallbackImg();
+                        }
                     } else {
-                        el.innerHTML = `<div class="bg-slate-900 text-white text-[8px] font-mono w-full h-full flex items-center justify-center text-center p-1">QR LINK</div>`;
+                        appendFallbackImg();
                     }
                 } catch (err) {
                     console.error("QR Render Error:", err);
+                    appendFallbackImg();
                 }
-            }, 25);
+            };
+
+            if (document.getElementById(elementId)) {
+                renderQR();
+            } else {
+                setTimeout(renderQR, 25);
+            }
         }
 
 
@@ -2234,6 +2534,36 @@
             updateStats();
         }
 
+        function updatePortalBaseUrl(val) {
+            appState.portalBaseUrl = val.trim();
+            localStorage.setItem(STORAGE_KEY_PORTAL_URL, appState.portalBaseUrl);
+            updatePortalHostBadge();
+            renderLiveCalibratorPreview();
+        }
+
+        function updatePortalHostBadge() {
+            const badge = document.getElementById('qr-host-mode-badge');
+            if (!badge) return;
+            const resolved = getBasePortalUrl();
+            if (appState.portalBaseUrl) {
+                badge.textContent = 'Custom Portal URL Active';
+                badge.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold';
+            } else if (!isLocalEnvironment()) {
+                badge.textContent = 'Live Hosted URL Active';
+                badge.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold';
+            } else {
+                badge.textContent = `Local File: ${resolved.slice(0, 32)}...`;
+                badge.className = 'text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold';
+            }
+        }
+
+        function testCurrentPreviewQrLink() {
+            const targetId = appState.calibratorTarget;
+            const athlete = appState.athletes.find(a => a.id === targetId) || appState.athletes[0] || SAMPLE_ATHLETES[0];
+            const url = getAthleteVerificationURL(athlete);
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
         function onCalibratorTargetChange() {
             const select = document.getElementById('calibrator-athlete-select');
             appState.calibratorTarget = select.value;
@@ -2313,6 +2643,12 @@
             document.getElementById('calib-tmpl-opacity').value = appState.customTemplate.opacity || 100;
             document.getElementById('val-calib-tmpl-opacity').textContent = (appState.customTemplate.opacity || 100) + '%';
             updateTemplateStatusUI();
+
+            const portalInput = document.getElementById('calib-portal-url');
+            if (portalInput) {
+                portalInput.value = appState.portalBaseUrl || '';
+                updatePortalHostBadge();
+            }
 
             document.getElementById('calib-photoX').value = calib.photoX ?? 0;
             document.getElementById('calib-photoY').value = calib.photoY ?? 0;
@@ -2506,7 +2842,6 @@
                 }
             });
 
-            // Automatically flip preview side to match selected tab
             if (tabName === 'back' && appState.calibratorPreviewSide !== 'back') {
                 togglePreviewSide('back', false);
             } else if (tabName !== 'back' && appState.calibratorPreviewSide !== 'front') {
@@ -2663,41 +2998,131 @@
 
 
         /* ========================================================================= */
-        /* DIGITAL QR VERIFICATION ENGINE (ADMIN PREVIEW VS EXTERNAL SCANNER LOCK) */
+        /* DIGITAL QR VERIFICATION ENGINE & CLICKABLE ATTACHED FILES */
         /* ========================================================================= */
 
-        function checkURLForVerification() {
-            const params = new URLSearchParams(window.location.search);
-            let athleteId = params.get('id') || params.get('verify');
-            const encodedPayload = params.get('p');
+        function parseVerificationParams() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const rawHash = window.location.hash ? window.location.hash.replace(/^#/, '') : '';
+            const hashParams = rawHash.includes('=') ? new URLSearchParams(rawHash) : new URLSearchParams();
 
-            if (!athleteId && window.location.hash) {
-                const hash = window.location.hash.replace('#', '');
-                if (hash.startsWith('verify-')) {
-                    athleteId = hash.replace('verify-', '');
+            let athleteId = searchParams.get('id') || searchParams.get('verify') || hashParams.get('id') || hashParams.get('verify');
+            const encodedPayload = searchParams.get('p') || hashParams.get('p');
+            const compactPayload = searchParams.get('v') || hashParams.get('v');
+
+            if (!athleteId && rawHash) {
+                if (rawHash.startsWith('verify-')) {
+                    athleteId = decodeURIComponent(rawHash.replace('verify-', ''));
+                } else if (rawHash.startsWith('BRLP-')) {
+                    athleteId = decodeURIComponent(rawHash);
                 }
             }
 
-            if (athleteId) {
-                // External QR scan mode: hide admin dashboard completely
+            return { athleteId, encodedPayload, compactPayload };
+        }
+
+        function checkURLForVerification() {
+            const { athleteId, encodedPayload, compactPayload } = parseVerificationParams();
+
+            if (athleteId || encodedPayload) {
+                // External QR scan mode: hide admin dashboard and open directly to athlete's profile
                 appState.isExternalScanMode = true;
                 document.body.classList.add('qr-scan-mode');
-                const decodedAthlete = encodedPayload ? decodePortableProfilePayload(encodedPayload) : null;
-                openVerifiedModal(athleteId, true, decodedAthlete);
+                let decodedAthlete = null;
+                if (encodedPayload) {
+                    decodedAthlete = decodePortableProfilePayload(encodedPayload, athleteId);
+                } else if (compactPayload) {
+                    decodedAthlete = decodeCompactProfilePayload(compactPayload, athleteId);
+                }
+                const targetId = athleteId || (decodedAthlete && decodedAthlete.id) || '';
+                appState.lastScannedContext = { athleteId: targetId, decodedAthlete };
+                openVerifiedModal(targetId, true, decodedAthlete);
                 return true;
             }
             return false;
         }
 
+        function reopenScannedAthleteProfile() {
+            document.getElementById('external-session-closed-screen').classList.add('hidden');
+            if (appState.lastScannedContext) {
+                openVerifiedModal(appState.lastScannedContext.athleteId, true, appState.lastScannedContext.decodedAthlete);
+            } else {
+                checkURLForVerification();
+            }
+        }
+
         function normalizeClickableFileUrl(url) {
             if (!url) return '';
-            const trimmed = url.trim();
+            const trimmed = String(url).trim();
             if (!trimmed) return '';
+            if (trimmed.startsWith('data:')) return trimmed;
             if (/^https?:\/\//i.test(trimmed)) return trimmed;
-            if (trimmed.startsWith('www.') || trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
+            if (/^[a-z0-9-]+(\.[a-z0-9-]+)+/i.test(trimmed)) {
                 return 'https://' + trimmed;
             }
             return '';
+        }
+
+        function detectFileBadge(url) {
+            const lower = url.toLowerCase();
+            if (lower.startsWith('data:application/pdf') || lower.endsWith('.pdf')) return { label: 'OPEN PDF', icon: 'fa-file-pdf' };
+            if (lower.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)(\?|$)/.test(lower)) return { label: 'VIEW IMAGE', icon: 'fa-file-image' };
+            if (lower.includes('drive.google.com') || lower.includes('docs.google.com')) return { label: 'OPEN DRIVE', icon: 'fa-folder-open' };
+            return { label: 'OPEN FILE', icon: 'fa-file-arrow-up' };
+        }
+
+        // Opens any attached file (external URL or embedded data URL) reliably on mobile & desktop
+        function openAttachedFile(event, encodedUrl, encodedTitle) {
+            const url = decodeURIComponent(encodedUrl || '');
+            const title = decodeURIComponent(encodedTitle || 'Attached File');
+            if (!url) return;
+
+            // For embedded data: URLs (uploaded directly in browser), open via Blob or built-in viewer
+            if (url.startsWith('data:')) {
+                if (event) event.preventDefault();
+                try {
+                    const parts = url.split(',');
+                    const mimeMatch = parts[0].match(/:(.*?);/);
+                    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                    const byteString = atob(parts[1]);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+                    const blob = new Blob([ab], { type: mime });
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    openFileViewerModal(blobUrl, title, mime);
+                } catch (e) {
+                    openFileViewerModal(url, title, '');
+                }
+                return;
+            }
+
+            // Standard http(s) URLs let native <a href="..." target="_blank"> navigate directly
+        }
+
+        function openFileViewerModal(fileUrl, title, mimeType) {
+            const modal = document.getElementById('file-viewer-modal');
+            const titleEl = document.getElementById('file-viewer-title');
+            const bodyEl = document.getElementById('file-viewer-body');
+            const dlBtn = document.getElementById('file-viewer-download-btn');
+
+            titleEl.textContent = title || 'Attached Document';
+            dlBtn.href = fileUrl;
+            dlBtn.download = (title || 'BRLP_Document').replace(/[^a-z0-9._-]/gi, '_');
+
+            if (mimeType && mimeType.startsWith('image/')) {
+                bodyEl.innerHTML = `<img src="${fileUrl}" alt="${title}" class="max-w-full max-h-full object-contain rounded-xl">`;
+            } else {
+                bodyEl.innerHTML = `<iframe src="${fileUrl}" class="w-full h-full rounded-xl border-0 bg-white" title="${title}"></iframe>`;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeFileViewerModal() {
+            document.getElementById('file-viewer-modal').classList.add('hidden');
+            document.getElementById('file-viewer-body').innerHTML = '';
         }
 
         function openVerifiedModal(athleteId, isExternalScan = false, portableAthlete = null) {
@@ -2717,26 +3142,33 @@
             document.getElementById('verify-charter').textContent = athlete.charter || 'National Charter';
             document.getElementById('verify-dob').textContent = athlete.dob || 'May 14, 2010';
 
+            const extraUrl = normalizeClickableFileUrl(athlete.docExtra);
+
             // Render Clickable Compliance File Links
             const complianceItems = [
-                { label: 'PSA Birth Certificate', icon: 'fa-certificate', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docPsa) },
-                { label: 'National / School ID', icon: 'fa-id-card', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docId) },
-                { label: 'Medical Clearance 2026', icon: 'fa-file-medical', status: 'PASSED', url: normalizeClickableFileUrl(athlete.docMedical) },
-                { label: 'Parental Waiver', icon: 'fa-file-signature', status: 'SIGNED', url: normalizeClickableFileUrl(athlete.docWaiver) }
+                { label: 'PSA Birth Certificate', icon: 'fa-certificate', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docPsa) || extraUrl },
+                { label: 'National / School ID', icon: 'fa-id-card', status: 'VERIFIED', url: normalizeClickableFileUrl(athlete.docId) || extraUrl },
+                { label: 'Medical Clearance 2026', icon: 'fa-file-medical', status: 'PASSED', url: normalizeClickableFileUrl(athlete.docMedical) || extraUrl },
+                { label: 'Parental Waiver', icon: 'fa-file-signature', status: 'SIGNED', url: normalizeClickableFileUrl(athlete.docWaiver) || extraUrl }
             ];
 
             const gridEl = document.getElementById('verify-compliance-grid');
             gridEl.innerHTML = complianceItems.map(item => {
                 if (item.url) {
+                    const badge = detectFileBadge(item.url);
+                    const safeHref = item.url.startsWith('data:') ? '#open-file' : item.url;
+                    const encUrl = encodeURIComponent(item.url);
+                    const encLabel = encodeURIComponent(item.label);
                     return `
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer"
-                       class="bg-darkbg hover:bg-slate-900 border border-emerald-500/40 hover:border-cyan-400 p-3 rounded-xl flex items-center justify-between transition group cursor-pointer">
+                    <a href="${safeHref}" target="_blank" rel="noopener noreferrer"
+                       onclick="openAttachedFile(event, '${encUrl}', '${encLabel}')"
+                       class="bg-darkbg hover:bg-slate-900 border border-emerald-500/40 hover:border-cyan-400 p-3 rounded-xl flex items-center justify-between transition group cursor-pointer shadow-sm">
                         <div class="flex items-center space-x-2 min-w-0 pr-2">
                             <i class="fa-solid ${item.icon} text-emerald-400 flex-shrink-0"></i>
-                            <span class="text-white font-semibold truncate group-hover:text-cyan-300 underline decoration-cyan-500/50 underline-offset-2">${item.label}</span>
+                            <span class="text-white font-semibold truncate group-hover:text-cyan-300 underline decoration-cyan-500/60 underline-offset-2">${item.label}</span>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 rounded flex-shrink-0 flex items-center space-x-1">
-                            <span>VIEW FILE</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 rounded flex-shrink-0 flex items-center space-x-1 group-hover:bg-cyan-500 group-hover:text-slate-950 transition">
+                            <span>${badge.label}</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                         </span>
                     </a>
@@ -2754,18 +3186,52 @@
                 }
             }).join('');
 
-            const extraUrl = normalizeClickableFileUrl(athlete.docExtra);
-            const extraBox = document.getElementById('verify-extra-file-box');
-            const extraLink = document.getElementById('verify-extra-file-link');
+            // Render Additional Attached Files (docExtra + custom attachments array)
+            const additionalFiles = [];
             if (extraUrl) {
-                extraLink.href = extraUrl;
-                extraBox.classList.remove('hidden');
+                additionalFiles.push({ name: 'Supporting Document / Folder', url: extraUrl });
+            }
+            if (Array.isArray(athlete.attachments)) {
+                athlete.attachments.forEach((att, idx) => {
+                    const cleanUrl = normalizeClickableFileUrl(att.url);
+                    if (cleanUrl) {
+                        additionalFiles.push({ name: att.name || `Attached Document ${idx + 1}`, url: cleanUrl });
+                    }
+                });
+            }
+
+            const attachedContainer = document.getElementById('verify-attached-files-container');
+            const attachedList = document.getElementById('verify-attached-files-list');
+            if (additionalFiles.length > 0) {
+                attachedList.innerHTML = additionalFiles.map(file => {
+                    const badge = detectFileBadge(file.url);
+                    const safeHref = file.url.startsWith('data:') ? '#open-file' : file.url;
+                    const encUrl = encodeURIComponent(file.url);
+                    const encName = encodeURIComponent(file.name);
+                    return `
+                    <a href="${safeHref}" target="_blank" rel="noopener noreferrer"
+                       onclick="openAttachedFile(event, '${encUrl}', '${encName}')"
+                       class="bg-blue-950/40 hover:bg-blue-900/50 border border-blue-500/40 hover:border-cyan-400 p-3 rounded-xl flex items-center justify-between transition group cursor-pointer">
+                        <div class="flex items-center space-x-2 min-w-0 pr-2">
+                            <i class="fa-solid ${badge.icon} text-cyan-400 flex-shrink-0"></i>
+                            <span class="text-white font-semibold truncate group-hover:text-cyan-300 underline decoration-cyan-500/60 underline-offset-2">${file.name}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-cyan-600 group-hover:bg-cyan-500 text-white rounded flex-shrink-0 flex items-center space-x-1 transition">
+                            <span>${badge.label}</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </span>
+                    </a>
+                    `;
+                }).join('');
+                attachedContainer.classList.remove('hidden');
             } else {
-                extraBox.classList.add('hidden');
+                attachedContainer.classList.add('hidden');
             }
 
             const shareUrl = getAthleteVerificationURL(athlete);
             document.getElementById('verify-share-link').value = shareUrl;
+            const openBtn = document.getElementById('verify-open-link-btn');
+            if (openBtn) openBtn.href = shareUrl;
 
             // Adjust Exit/Close button label based on External Scan Mode vs Admin Preview
             const bottomBtn = document.getElementById('verify-bottom-close-btn');
@@ -2787,7 +3253,6 @@
             document.getElementById('verified-profile-modal').classList.add('hidden');
 
             if (appState.isExternalScanMode) {
-                // Keep admin dashboard strictly hidden & locked; attempt to close tab/window completely
                 document.body.classList.add('qr-scan-mode');
                 document.getElementById('external-session-closed-screen').classList.remove('hidden');
                 try {
@@ -2797,7 +3262,6 @@
                 return;
             }
 
-            // Admin Dashboard mode: return cleanly to dashboard
             if (window.history.pushState) {
                 const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
                 window.history.pushState({path: cleanUrl}, '', cleanUrl);
@@ -2808,7 +3272,7 @@
             const input = document.getElementById('verify-share-link');
             input.select();
             navigator.clipboard?.writeText(input.value).catch(() => document.execCommand('copy'));
-            showToastNotification("BRLP Verification Link copied to clipboard!");
+            showToastNotification("Direct Athlete QR Profile Link copied to clipboard!");
         }
 
 
@@ -2873,13 +3337,14 @@
 
 
         /* ========================================================================= */
-        /* ATHLETE FORM & GOOGLE SHEET / CSV SYNC SYSTEM */
+        /* ATHLETE FORM, FILE ATTACHMENT & GOOGLE SHEET / CSV SYNC SYSTEM */
         /* ========================================================================= */
 
         function openAddAthleteModal() {
             document.getElementById('form-modal-title').textContent = "Add New Athlete Profile";
             document.getElementById('athlete-form').reset();
             document.getElementById('form-athlete-id').value = '';
+            document.getElementById('form-attachments-list').innerHTML = '';
             document.getElementById('athlete-form-modal').classList.remove('hidden');
         }
 
@@ -2904,6 +3369,12 @@
             document.getElementById('form-doc-waiver').value = athlete.docWaiver || '';
             document.getElementById('form-doc-extra').value = athlete.docExtra || '';
 
+            const listEl = document.getElementById('form-attachments-list');
+            listEl.innerHTML = '';
+            if (Array.isArray(athlete.attachments)) {
+                athlete.attachments.forEach(att => addAttachmentRow(att.name, att.url));
+            }
+
             document.getElementById('athlete-form-modal').classList.remove('hidden');
         }
 
@@ -2911,9 +3382,73 @@
             document.getElementById('athlete-form-modal').classList.add('hidden');
         }
 
+        function handleDocFileAttach(event, targetInputId) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                let result = evt.target.result;
+                if (file.type.startsWith('image/')) {
+                    result = await compressImageDataUrl(result, 1200, 0.85);
+                }
+                const input = document.getElementById(targetInputId);
+                if (input) input.value = result;
+                showToastNotification(`Attached "${file.name}"! Note: Use cloud/Drive links for cross-device phone QR scans.`);
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function addAttachmentRow(name = '', url = '') {
+            const listEl = document.getElementById('form-attachments-list');
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 attachment-row';
+            row.innerHTML = `
+                <input type="text" placeholder="File Title (e.g. Birth Cert)" value="${name.replace(/"/g, '&quot;')}" class="att-name w-1/3 bg-slate-900 border border-cardborder rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:border-cyan-400 focus:outline-none">
+                <input type="text" placeholder="https://drive.google.com/..." value="${url.replace(/"/g, '&quot;')}" class="att-url flex-1 bg-slate-900 border border-cardborder rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:border-cyan-400 focus:outline-none">
+                <label class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg cursor-pointer text-[10px] font-bold flex-shrink-0" title="Attach local file">
+                    <i class="fa-solid fa-upload"></i>
+                    <input type="file" accept=".pdf,image/*,.doc,.docx" class="hidden" onchange="handleRowFileAttach(event, this)">
+                </label>
+                <button type="button" onclick="this.parentElement.remove()" class="px-2 py-1.5 bg-slate-800 hover:bg-red-900/60 text-gray-400 hover:text-red-300 rounded-lg text-[10px] flex-shrink-0">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            listEl.appendChild(row);
+        }
+
+        function handleRowFileAttach(event, inputEl) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const row = inputEl.closest('.attachment-row');
+            const nameInput = row.querySelector('.att-name');
+            const urlInput = row.querySelector('.att-url');
+            if (!nameInput.value.trim()) nameInput.value = file.name;
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                let result = evt.target.result;
+                if (file.type.startsWith('image/')) {
+                    result = await compressImageDataUrl(result, 1200, 0.85);
+                }
+                urlInput.value = result;
+                showToastNotification(`Attached "${file.name}"!`);
+            };
+            reader.readAsDataURL(file);
+        }
+
         function handleSaveAthlete(e) {
             e.preventDefault();
             const existingId = document.getElementById('form-athlete-id').value;
+
+            const attachments = [];
+            document.querySelectorAll('#form-attachments-list .attachment-row').forEach(row => {
+                const name = row.querySelector('.att-name').value.trim();
+                const url = row.querySelector('.att-url').value.trim();
+                if (url) {
+                    attachments.push({ name: name || 'Attached Document', url });
+                }
+            });
 
             const athleteData = {
                 id: existingId || `BRLP-2026-${Math.floor(8000 + Math.random() * 1000)}`,
@@ -2930,7 +3465,8 @@
                 docId: document.getElementById('form-doc-id').value.trim(),
                 docMedical: document.getElementById('form-doc-medical').value.trim(),
                 docWaiver: document.getElementById('form-doc-waiver').value.trim(),
-                docExtra: document.getElementById('form-doc-extra').value.trim()
+                docExtra: document.getElementById('form-doc-extra').value.trim(),
+                attachments
             };
 
             if (existingId) {
@@ -3116,6 +3652,14 @@
             return rows.filter(r => r.some(cell => cell !== ''));
         }
 
+        function extractUrlsFromCell(cellValue) {
+            if (!cellValue) return [];
+            return cellValue
+                .split(/[\n,;]+/)
+                .map(s => s.trim())
+                .filter(s => /^https?:\/\//i.test(s) || s.includes('drive.google.com') || s.includes('docs.google.com'));
+        }
+
         function parseAndImportCSV(csvText) {
             const rows = parseCSVRows(csvText);
             if (rows.length < 2) {
@@ -3162,7 +3706,7 @@
                 docId: findColIndex(['docid', 'school id', 'national id'], ['school id', 'national id', 'valid id']),
                 docMedical: findColIndex(['docmedical', 'medical', 'medical clearance'], ['medical']),
                 docWaiver: findColIndex(['docwaiver', 'waiver', 'parental waiver'], ['waiver']),
-                docExtra: findColIndex(['docextra', 'file link', 'uploaded file', 'document link', 'documents'], ['file', 'upload', 'document', 'attachment', 'folder'])
+                docExtra: findColIndex(['docextra', 'file link', 'uploaded file', 'document link', 'documents', 'attachments', 'attached files'], ['file', 'upload', 'document', 'attachment', 'folder'])
             };
 
             if (idxMap.name === -1 && idxMap.firstName === -1 && idxMap.lastName === -1) {
@@ -3186,6 +3730,14 @@
 
                 if (!nameVal || nameVal.includes('@')) continue;
 
+                const extraRaw = getVal('docExtra');
+                const extraUrls = extractUrlsFromCell(extraRaw);
+                const primaryExtra = extraUrls[0] || extraRaw;
+                const extraAttachments = extraUrls.slice(1).map((u, idx) => ({
+                    name: `Attached File ${idx + 2}`,
+                    url: u
+                }));
+
                 importedAthletes.push({
                     id: getVal('id') || `BRLP-2026-${Math.floor(1000 + Math.random() * 9000)}`,
                     name: nameVal,
@@ -3201,7 +3753,8 @@
                     docId: getVal('docId') || '',
                     docMedical: getVal('docMedical') || '',
                     docWaiver: getVal('docWaiver') || '',
-                    docExtra: getVal('docExtra') || ''
+                    docExtra: primaryExtra,
+                    attachments: extraAttachments
                 });
             }
 
