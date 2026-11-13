@@ -1621,7 +1621,9 @@
         function isLocalEnvironment() {
             const proto = window.location.protocol;
             const origin = window.location.origin;
-            return (proto !== 'http:' && proto !== 'https:') || !origin || origin === 'null' || window.location.href.startsWith('blob:');
+            const host = (window.location.hostname || '').toLowerCase();
+            const localHost = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1' || host.endsWith('.local');
+            return (proto !== 'http:' && proto !== 'https:') || !origin || origin === 'null' || localHost || window.location.href.startsWith('blob:');
         }
 
         function checkLocalPortalBanner() {
@@ -1637,10 +1639,19 @@
         function saveBannerPortalUrl() {
             const input = document.getElementById('banner-portal-url-input');
             if (!input || !input.value.trim()) {
-                showToastNotification("Please enter your hosted portal web URL.");
+                showToastNotification("Please enter your public HTTPS portal URL.");
                 return;
             }
             updatePortalBaseUrl(input.value.trim());
+            if (!getBasePortalUrl()) {
+                appState.portalBaseUrl = '';
+                localStorage.removeItem(STORAGE_KEY_PORTAL_URL);
+                showToastNotification("Enter a valid public website URL (HTTPS). Local file and localhost links cannot be scanned on other phones.");
+                checkLocalPortalBanner();
+                updatePortalHostBadge();
+                renderGallery();
+                return;
+            }
             checkLocalPortalBanner();
             renderGallery();
             showToastNotification("Live Portal URL saved! All QR codes now link directly to your athlete profiles.");
@@ -2038,13 +2049,25 @@
             const customUrl = (appState.portalBaseUrl || '').trim();
             if (customUrl) {
                 const normalized = /^https?:\/\//i.test(customUrl) ? customUrl : 'https://' + customUrl;
-                return normalized.split('?')[0].split('#')[0];
+                try {
+                    const parsed = new URL(normalized);
+                    if (!['http:', 'https:'].includes(parsed.protocol) || isLocalHostName(parsed.hostname)) return '';
+                    parsed.search = '';
+                    parsed.hash = '';
+                    return parsed.href.replace(/\/$/, '');
+                } catch (e) { return ''; }
             }
             if (!isLocalEnvironment()) {
                 return window.location.origin + window.location.pathname;
             }
-            // Fallback when running as a local offline file without custom URL set
-            return window.location.href.split('?')[0].split('#')[0];
+            // A local file / localhost address cannot be opened by another phone.
+            // Require the administrator to enter the public HTTPS portal URL.
+            return '';
+        }
+
+        function isLocalHostName(hostname) {
+            const host = String(hostname || '').toLowerCase();
+            return host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1' || host.endsWith('.local');
         }
 
         // Compact URL shortening helpers for QR embedding
@@ -2170,29 +2193,47 @@
             }
         }
 
-        // Generates the direct QR link that opens straight to this athlete's profile & attached files
+        // Small, self-contained athlete payload for reliable phone-to-phone QR scanning.
+        // The profile fields travel with the QR so the scan does not depend on admin localStorage.
+        function encodeQrProfilePayload(athlete, includePhoto = true) {
+            const payload = {
+                i: athlete.id || '', n: athlete.name || 'Athlete', j: athlete.jersey || '00',
+                s: athlete.sport || 'Baseball', d: athlete.division || '', c: athlete.charter || '',
+                t: athlete.team || '', b: athlete.dob || '', r: athlete.position || 'Athlete'
+            };
+            const photo = normalizeClickableFileUrl(athlete.photo || '');
+            if (includePhoto && photo && /^https?:\/\//i.test(photo) && photo.length <= 360) payload.ph = shortenUrlForQr(photo);
+            return toUrlSafeBase64(JSON.stringify(payload));
+        }
+
+        // Generates a unique, directly scannable athlete profile URL.
         function getAthleteVerificationURL(athleteOrId) {
             const athlete = typeof athleteOrId === 'string'
                 ? (appState.athletes.find(a => a.id === athleteOrId) || SAMPLE_ATHLETES.find(a => a.id === athleteOrId) || { id: athleteOrId })
                 : athleteOrId;
             const baseUrl = getBasePortalUrl();
-            const separator = baseUrl.includes('?') ? '&' : '?';
-            const idParam = `id=${encodeURIComponent(athlete.id || '')}`;
+            const athleteId = String(athlete.id || '').trim();
+            if (!baseUrl || !athleteId) return '';
 
-            // Encode full athlete data + clickable attached file URLs
-            let encoded = encodePortableProfilePayload(athlete, true);
-            let fullUrl = `${baseUrl}${separator}${idParam}&p=${encoded}#verify=${encodeURIComponent(athlete.id || '')}`;
-
-            // Keep QR payload well within crisp scan density (< 1100 chars)
-            if (fullUrl.length > 1100) {
-                encoded = encodePortableProfilePayload(athlete, false);
-                fullUrl = `${baseUrl}${separator}${idParam}&p=${encoded}#verify=${encodeURIComponent(athlete.id || '')}`;
-            }
-
-            if (fullUrl.length <= 1350) {
-                return fullUrl;
-            }
-            return `${baseUrl}${separator}${idParam}#verify=${encodeURIComponent(athlete.id || '')}`;
+            // Use a compact, URL-encoded query payload. This keeps the QR destination
+            // shorter and ensures phone scanners recognize it as a normal web link.
+            // The profile data is embedded, so scanning does not depend on admin localStorage.
+            const compactFields = [
+                athlete.name || 'Athlete',
+                athlete.jersey || '00',
+                athlete.sport || 'Baseball',
+                athlete.division || '',
+                athlete.charter || '',
+                athlete.team || '',
+                athlete.dob || '',
+                athlete.position || 'Athlete'
+            ];
+            const destination = new URL(baseUrl);
+            destination.search = '';
+            destination.hash = '';
+            destination.searchParams.set('id', athleteId);
+            destination.searchParams.set('v', compactFields.join('|'));
+            return destination.toString();
         }
 
         /**
@@ -2375,6 +2416,18 @@
                 el.innerHTML = '';
                 el.style.backgroundColor = '#ffffff';
 
+                if (!textUrl || !/^https?:\/\//i.test(textUrl)) {
+                    el.style.display = 'flex';
+                    el.style.alignItems = 'center';
+                    el.style.justifyContent = 'center';
+                    el.style.padding = '5px';
+                    el.style.boxSizing = 'border-box';
+                    el.innerHTML = '<span style="font:700 9px/1.25 Arial,sans-serif;color:#92400e;text-align:center">SET PUBLIC HTTPS PORTAL URL TO ENABLE QR</span>';
+                    return;
+                }
+                el.style.display = 'block';
+                el.style.padding = '0';
+
                 const appendFallbackImg = () => {
                     const img = document.createElement('img');
                     img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&data=${encodeURIComponent(textUrl)}`;
@@ -2553,7 +2606,7 @@
                 badge.textContent = 'Live Hosted URL Active';
                 badge.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold';
             } else {
-                badge.textContent = `Local File: ${resolved.slice(0, 32)}...`;
+                badge.textContent = 'Public HTTPS URL Required';
                 badge.className = 'text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold';
             }
         }
@@ -2562,6 +2615,10 @@
             const targetId = appState.calibratorTarget;
             const athlete = appState.athletes.find(a => a.id === targetId) || appState.athletes[0] || SAMPLE_ATHLETES[0];
             const url = getAthleteVerificationURL(athlete);
+            if (!url) {
+                showToastNotification("Set the public HTTPS portal URL first. A local HTML file address cannot open on another phone.");
+                return;
+            }
             window.open(url, '_blank', 'noopener,noreferrer');
         }
 
@@ -3128,8 +3185,15 @@
 
         function openVerifiedModal(athleteId, isExternalScan = false, portableAthlete = null) {
             const localAthlete = appState.athletes.find(a => a.id === athleteId) || SAMPLE_ATHLETES.find(a => a.id === athleteId);
-            const athlete = localAthlete ? { ...(portableAthlete || {}), ...localAthlete } : (portableAthlete || appState.athletes[0]);
-            if (!athlete) return;
+            const athlete = localAthlete ? { ...(portableAthlete || {}), ...localAthlete } : portableAthlete;
+            if (!athlete) {
+                const modal = document.getElementById('verified-profile-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.innerHTML = '<div class="bg-slate-900 border border-amber-500/40 rounded-2xl p-8 max-w-md text-center"><div class="text-amber-400 text-3xl mb-3"><i class="fa-solid fa-circle-exclamation"></i></div><h2 class="text-white text-xl font-black mb-2">Athlete Profile Unavailable</h2><p class="text-gray-300 text-sm">This QR code does not contain a readable athlete profile. Please request a newly generated ID from the BRLP administrator.</p></div>';
+                }
+                return;
+            }
 
             document.getElementById('verify-athlete-name').textContent = athlete.name;
             document.getElementById('verify-athlete-charter-team').textContent = `${athlete.charter || 'Manila Charter'} • ${athlete.team || 'Roster Team'}`;
